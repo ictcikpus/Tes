@@ -1,0 +1,11 @@
+{
+  "name": "Cikpus CyberLock Kelas XII",
+  "short_name": "CyberLock XII",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "any",
+  "background_color": "#06101f",
+  "theme_color": "#06101f",
+  "description": "Sistem ujian anti curang kelas XII berbasis Google Form dan Spreadsheet."
+}

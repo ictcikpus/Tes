@@ -1,0 +1,11 @@
+{
+  "name": "Cikpus CyberLock Kelas X",
+  "short_name": "CyberLock X",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "any",
+  "background_color": "#06101f",
+  "theme_color": "#06101f",
+  "description": "Sistem ujian anti curang kelas X berbasis Google Form dan Spreadsheet."
+}
