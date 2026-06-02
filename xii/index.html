@@ -8,7 +8,7 @@
   <meta name="theme-color" content="#06101f">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-title" content="CyberLock X">
+  <meta name="apple-mobile-web-app-title" content="CyberLock XII">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
   <link rel="preconnect" href="https://docs.google.com">
@@ -22,8 +22,8 @@
     }
 
     :root {
-      --zona-kanan: 35vw;
-      --zona-bawah-aman: clamp(95px, 14vh, 150px);
+      --zona-kanan: 50vw;
+      --zona-bawah-aman: clamp(135px, 22vh, 230px);
       --topbar-height: clamp(50px, 7vh, 60px);
       --font-topbar: clamp(7.5px, 1.95vw, 10.5px);
     }
@@ -517,13 +517,13 @@
     /* RESPONSIF ZONA PENGAWASAN */
     @media (max-width: 420px) {
       :root {
-        --zona-kanan: 32vw;
+        --zona-kanan: 48vw;
       }
     }
 
     @media (min-width: 700px) {
       :root {
-        --zona-kanan: 38vw;
+        --zona-kanan: 50vw;
       }
     }
 
@@ -587,7 +587,7 @@
         1. Gunakan 1 smartphone dan pastikan login email Google sebelum mulai.<br>
         2. Isi semua petanyaan dengan benar, jujur dan tidak menyontek.<br>
         3. Gunakan hanya bagian kiri layar untuk scroll dan menjawab soal.<br>
-        4. Area kanan adalah zona pengawasan. Bagian bawah layar tetap aman untuk tombol Google Form.<br>
+        4. Setengah kanan layar adalah zona pengawasan, tetapi bagian bawah tetap aman untuk tombol Google Form.<br>
         5. Tombol Selesai akan muncul saat semua soal telah dikerjakan atau ujian berjalan 30 menit.
       </div>
 
@@ -650,7 +650,7 @@
     </div>
 
     <div id="right-touch-guard"></div>
-    <div id="bottom-safe-note">Area bawah aman untuk tombol Form</div>
+    <div id="bottom-safe-note">Area bawah aman untuk tombol Google Form</div>
     <div id="iframe-stuck-panel">
       <b>Google Form terasa macet?</b><br>
       Tunggu sebentar. Jika soal tetap tidak muncul, tekan tombol di bawah ini.
@@ -681,7 +681,7 @@
     const TOKEN_PENGAWAS = "GURUOTIB";
     const TOKEN_UJI_COBA = "JUJUR";
 
-    const BATAS_PERINGATAN_ZONA_KANAN = 3;
+    const BATAS_PERINGATAN_ZONA_KANAN = 1;
     const MIN_DURASI_TOMBOL_SELESAI_MS = 30 * 60 * 1000; // cadangan 30 menit
     const MIN_LOAD_FORM_SELESAI = 2; // Form 3 bagian: 1 Identitas, 2 Soal, 3 Pernyataan
 
@@ -753,6 +753,9 @@
     let guardGestureSudahDiproses = false;
     let tombolSelesaiAktif = false;
     let formLoadCount = 0;
+    let jumlahPeringatanPopup = 0;
+    let daftarPeringatanAktivitas = {};
+    let popupToleransiTimer = null;
     let jumlahGagalKamera = 0;
     let iframeLoadTimer = null;
     let iframeReloadManual = false;
@@ -981,6 +984,7 @@
       statusTerkunci = false;
       jumlahPelanggaran = 0;
       jumlahSentuhanZonaKanan = 0;
+      jumlahPeringatanPopup = 0;
       jumlahGagalKamera = 0;
       tombolSelesaiAktif = false;
       formLoadCount = 0;
@@ -1177,13 +1181,19 @@
           document.getElementById("camera-label").innerText = `Kamera ${jumlahGagalKamera}/${CAMERA_FAIL_LIMIT}`;
 
           if (jumlahGagalKamera >= CAMERA_FAIL_LIMIT) {
-            prosesPelanggaran("Kamera tidak aktif atau terputus beberapa kali saat ujian berlangsung.");
+            beriPeringatanAtauKunci(
+              "kamera",
+              "PERINGATAN KAMERA: Kamera tidak terbaca stabil. Pastikan izin kamera aktif dan jangan menutup kamera. Jika terulang, ujian akan dikunci.",
+              "Kamera tidak aktif atau terputus beberapa kali saat ujian berlangsung.",
+              1
+            );
           }
 
           return;
         }
 
         jumlahGagalKamera = 0;
+        resetPeringatanAktivitas("kamera");
         document.getElementById("camera-label").innerText = "Kamera Aktif";
       }, 5000);
     }
@@ -1388,7 +1398,7 @@
           if (!examAktif || statusTerkunci || guardGestureSudahDiproses) return;
           guardGestureSudahDiproses = true;
           prosesZonaKananDenganToleransi("Tekan lama di zona kanan terdeteksi.");
-        }, 2200);
+        }, 2300);
       }, { passive: false });
 
       guard.addEventListener("touchmove", function(event) {
@@ -1434,15 +1444,12 @@
     function prosesZonaKananDenganToleransi(alasan) {
       if (!examAktif || statusTerkunci) return;
 
-      jumlahSentuhanZonaKanan++;
-
-      if (jumlahSentuhanZonaKanan <= BATAS_PERINGATAN_ZONA_KANAN) {
-        tampilPeringatanZonaKanan("PERINGATAN 1: Area kanan adalah zona pengawasan. Gunakan area kiri untuk scroll dan menjawab soal. Jika terulang, ujian akan dikunci.");
-        return;
-      }
-
-      tampilIndikator("Zona kanan disentuh kembali");
-      prosesPelanggaran(`${alasan} Peringatan zona kanan sudah diberikan.`);
+      beriPeringatanAtauKunci(
+        "zona kanan",
+        "PERINGATAN ZONA: Setengah kanan layar adalah zona pengawasan. Gunakan area kiri untuk scroll dan menjawab soal. Bagian bawah tetap aman untuk tombol Google Form.",
+        `${alasan} Zona pengawasan kanan disentuh kembali setelah peringatan.`,
+        1
+      );
     }
 
     function tampilPeringatanZonaKanan(teks) {
@@ -1503,6 +1510,19 @@
       }, 350);
     }
 
+
+    // ============================================================
+    // TOLERANSI POPUP / PERUBAHAN LAYAR
+    // ============================================================
+    function prosesPopupDenganToleransi(alasan) {
+      beriPeringatanAtauKunci(
+        "popup/perubahan layar",
+        "PERINGATAN: Popup atau perubahan layar terdeteksi. Tutup popup dan tetap berada di halaman ujian. Jika terulang, ujian akan dikunci.",
+        alasan,
+        1
+      );
+    }
+
     // ============================================================
     // PROTEKSI INTI
     // ============================================================
@@ -1513,7 +1533,16 @@
       }
 
       if (examAktif && document.hidden && !statusTerkunci) {
-        prosesPelanggaran("Peserta membuka aplikasi/tab lain atau keluar dari halaman ujian.");
+        setTimeout(() => {
+          if (examAktif && !statusTerkunci && document.hidden) {
+            prosesPopupDenganToleransi("Peserta membuka aplikasi/tab lain atau keluar dari halaman ujian.");
+          }
+        }, 1500);
+      }
+
+      if (examAktif && !document.hidden && !statusTerkunci) {
+        aktifkanToleransiPerubahanLayar(2500);
+        setTimeout(masukFullscreen, 500);
       }
     });
 
@@ -1536,10 +1565,20 @@
 
     function cekFullscreen() {
       if (!examAktif || statusTerkunci) return;
-      const fullscreenAktif = document.fullscreenElement || document.webkitFullscreenElement;
-      if (!fullscreenAktif) {
-        prosesPelanggaran("Keluar dari layar penuh. Indikasi membuka aplikasi/tab lain.");
-      }
+
+      if (Date.now() < abaikanCekLayarSampai) return;
+
+      clearTimeout(popupToleransiTimer);
+
+      popupToleransiTimer = setTimeout(() => {
+        if (!examAktif || statusTerkunci) return;
+
+        const fullscreenAktif = document.fullscreenElement || document.webkitFullscreenElement;
+
+        if (!fullscreenAktif) {
+          prosesPopupDenganToleransi("Keluar dari layar penuh atau popup sistem terdeteksi.");
+        }
+      }, 2800);
     }
 
     function mulaiCekLayar() {
@@ -1563,11 +1602,13 @@
 
         fokusHilangTimer = setTimeout(() => {
           if (!examAktif || statusTerkunci) return;
-          const fullscreenAktif = document.fullscreenElement || document.webkitFullscreenElement;
-          if (document.hidden || !fullscreenAktif || layarMengecilMencurigakan()) {
-            prosesPelanggaran("Popup, tab, split screen, atau aplikasi lain terdeteksi.");
+
+          // Popup kecil dari browser/Google Form tidak langsung dianggap curang.
+          // Dikunci hanya jika halaman benar-benar tersembunyi atau layar mengecil mencurigakan.
+          if (document.hidden || layarMengecilMencurigakan()) {
+            prosesPopupDenganToleransi("Popup, tab, split screen, atau aplikasi lain terdeteksi.");
           }
-        }, 2500);
+        }, 3000);
       });
 
       window.addEventListener("focus", () => {
@@ -1590,7 +1631,12 @@
       if (!fullscreenAktif) return;
 
       if (layarMengecilMencurigakan()) {
-        prosesPelanggaran("Split screen, popup, atau layar ujian mengecil terdeteksi.");
+        beriPeringatanAtauKunci(
+          "split screen",
+          "PERINGATAN LAYAR: Ukuran layar ujian berubah atau mengecil. Tutup split screen/popup dan kembali ke halaman ujian. Jika terulang, ujian akan dikunci.",
+          "Split screen, popup, atau layar ujian mengecil terdeteksi.",
+          1
+        );
       }
     }
 
@@ -1603,12 +1649,12 @@
       const rasioLebar = window.innerWidth / screenWidth;
       const rasioTinggi = window.innerHeight / screenHeight;
 
-      if (rasioLebar < 0.82) return true;
-      if (rasioTinggi < 0.62 && rasioLebar < 0.98) return true;
+      if (rasioLebar < 0.72) return true;
+      if (rasioTinggi < 0.52 && rasioLebar < 0.95) return true;
 
       if (window.visualViewport) {
         const vvLebar = window.visualViewport.width / screenWidth;
-        if (vvLebar < 0.82) return true;
+        if (vvLebar < 0.72) return true;
       }
 
       return false;
@@ -1618,8 +1664,12 @@
       document.addEventListener(evt, event => {
         event.preventDefault();
         if (examAktif && !statusTerkunci) {
-          tampilIndikator(`Aktivitas ${evt} terdeteksi`);
-          prosesPelanggaran(`Aktivitas ${evt} terdeteksi. Aktivitas ini tidak diperlukan saat ujian.`);
+          beriPeringatanAtauKunci(
+            `aktivitas ${evt}`,
+            `PERINGATAN: Aktivitas ${evt} terdeteksi. Aktivitas ini tidak diperlukan saat ujian. Jika terulang, ujian akan dikunci.`,
+            `Aktivitas ${evt} terdeteksi berulang. Aktivitas ini tidak diperlukan saat ujian.`,
+            1
+          );
         }
       }, true);
     });
@@ -1671,9 +1721,13 @@
 
       longPressTimer = setTimeout(() => {
         if (!examAktif || statusTerkunci) return;
-        tampilIndikator("Klik tahan terdeteksi");
-        prosesPelanggaran("Klik tahan terdeteksi. Aktivitas ini tidak diperlukan saat ujian.");
-      }, 2500);
+        beriPeringatanAtauKunci(
+          "klik tahan",
+          "PERINGATAN: Klik tahan terdeteksi. Jangan menekan layar terlalu lama karena dapat dianggap mencoba menyalin soal. Jika terulang, ujian akan dikunci.",
+          "Klik tahan terdeteksi berulang. Aktivitas ini tidak diperlukan saat ujian.",
+          1
+        );
+      }, 2800);
     }, true);
 
     document.addEventListener("touchmove", function(event) {
@@ -1690,8 +1744,12 @@
 
       if (geserX > 110 && geserX > geserY * 2) {
         event.preventDefault();
-        tampilIndikator("Geser kiri/kanan terdeteksi");
-        prosesPelanggaran("Geser kiri/kanan terdeteksi. Saat ujian hanya boleh scroll atas-bawah.");
+        beriPeringatanAtauKunci(
+          "geser kiri/kanan",
+          "PERINGATAN: Geser kiri/kanan terdeteksi. Saat ujian hanya boleh scroll atas-bawah. Jika terulang, ujian akan dikunci.",
+          "Geser kiri/kanan terdeteksi berulang. Saat ujian hanya boleh scroll atas-bawah.",
+          1
+        );
       }
     }, true);
 
@@ -1707,6 +1765,44 @@
       indikator.innerText = teks;
       indikator.style.display = "block";
       setTimeout(() => { indikator.style.display = "none"; }, 2500);
+    }
+
+
+    function beriPeringatanAtauKunci(kategori, pesanPeringatan, alasanKunci, batasPeringatan = 1) {
+      if (!examAktif || statusTerkunci) return;
+
+      if (!daftarPeringatanAktivitas[kategori]) {
+        daftarPeringatanAktivitas[kategori] = 0;
+      }
+
+      daftarPeringatanAktivitas[kategori]++;
+
+      const jumlah = daftarPeringatanAktivitas[kategori];
+
+      if (jumlah <= batasPeringatan) {
+        const label = document.getElementById("offense-label");
+        if (label && label.style.display !== "none") {
+          label.innerText = `Peringatan ${jumlah}x`;
+        }
+
+        tampilPeringatanZonaKanan(pesanPeringatan);
+        tampilIndikator(`Peringatan: ${kategori}`);
+        aktifkanToleransiPerubahanLayar(3500);
+
+        setTimeout(() => {
+          if (examAktif && !statusTerkunci) masukFullscreen();
+        }, 700);
+
+        return;
+      }
+
+      prosesPelanggaran(alasanKunci);
+    }
+
+    function resetPeringatanAktivitas(kategori) {
+      if (daftarPeringatanAktivitas && kategori) {
+        daftarPeringatanAktivitas[kategori] = 0;
+      }
     }
 
     function prosesPelanggaran(alasan) {
@@ -1827,13 +1923,23 @@
       if (!examAktif || statusTerkunci) return;
 
       if (event.key === KEY_BREACH && event.newValue === "true") {
-        prosesPelanggaran("Sistem mendeteksi pelanggaran dari tab lain.");
+        beriPeringatanAtauKunci(
+          "tab lain",
+          "PERINGATAN TAB: Sistem mendeteksi aktivitas dari tab lain. Tutup tab lain dan tetap di halaman ujian. Jika terulang, ujian akan dikunci.",
+          "Sistem mendeteksi pelanggaran dari tab lain.",
+          1
+        );
       }
 
       if (event.key === KEY_ACTIVE) {
         const sesi = bacaSesiAktif();
         if (sesi && sesi.tabId !== tabId && sesiMasihHidup(sesi)) {
-          prosesPelanggaran("Tab lain mencoba mengambil sesi ujian ini.");
+          beriPeringatanAtauKunci(
+            "tab ganda",
+            "PERINGATAN TAB GANDA: Ujian hanya boleh dibuka pada satu tab. Tutup tab lain sekarang. Jika terulang, ujian akan dikunci.",
+            "Tab lain mencoba mengambil sesi ujian ini.",
+            1
+          );
         }
       }
     });
@@ -1847,7 +1953,12 @@
           if (data.from === tabId) return;
 
           if (data.type === "DUPLICATE_TAB" || data.type === "LOCK") {
-            prosesPelanggaran(data.reason || "Sistem mendeteksi tab lain.");
+            beriPeringatanAtauKunci(
+              "broadcast tab",
+              "PERINGATAN TAB: Sistem mendeteksi tab lain. Tutup tab lain dan tetap di halaman ujian. Jika terulang, ujian akan dikunci.",
+              data.reason || "Sistem mendeteksi tab lain.",
+              1
+            );
           }
         };
       }
@@ -1880,7 +1991,12 @@
 
         const sesi = bacaSesiAktif();
         if (sesi && sesi.tabId !== tabId && sesiMasihHidup(sesi)) {
-          prosesPelanggaran("Sesi ujian aktif di tab lain.");
+          beriPeringatanAtauKunci(
+            "sesi tab lain",
+            "PERINGATAN SESI: Sesi ujian terdeteksi aktif di tab lain. Tutup tab lain sekarang. Jika terulang, ujian akan dikunci.",
+            "Sesi ujian aktif di tab lain.",
+            1
+          );
           return;
         }
 
