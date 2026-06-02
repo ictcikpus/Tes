@@ -22,7 +22,8 @@
     }
 
     :root {
-      --zona-kanan: 60vw;
+      --zona-kanan: 35vw;
+      --zona-bawah-aman: clamp(95px, 14vh, 150px);
       --topbar-height: clamp(50px, 7vh, 60px);
       --font-topbar: clamp(7.5px, 1.95vw, 10.5px);
     }
@@ -347,7 +348,7 @@
       position: fixed;
       top: var(--topbar-height);
       right: 0;
-      bottom: 0;
+      bottom: var(--zona-bawah-aman);
       width: var(--zona-kanan);
       z-index: 946;
       background: rgba(255, 0, 0, 0.004);
@@ -385,8 +386,8 @@
       inset: var(--topbar-height) 0 0 0;
       z-index: 910;
       pointer-events: none;
-      opacity: .12;
-      color: #000;
+      opacity: .045;
+      color: rgba(0,0,0,.85);
       font-size: 18px;
       font-weight: 900;
       line-height: 3.2;
@@ -512,6 +513,65 @@
       font-size: 14px;
       line-height: 1.5;
     }
+
+    /* RESPONSIF ZONA PENGAWASAN */
+    @media (max-width: 420px) {
+      :root {
+        --zona-kanan: 32vw;
+      }
+    }
+
+    @media (min-width: 700px) {
+      :root {
+        --zona-kanan: 38vw;
+      }
+    }
+
+
+    #bottom-safe-note {
+      position: fixed;
+      right: 6px;
+      bottom: 6px;
+      z-index: 940;
+      padding: 5px 7px;
+      border-radius: 8px;
+      background: rgba(6, 16, 31, .72);
+      color: #baffee;
+      font-size: clamp(7px, 1.8vw, 9px);
+      font-weight: 700;
+      pointer-events: none;
+      opacity: .82;
+    }
+
+    #iframe-stuck-panel {
+      display: none;
+      position: fixed;
+      left: 50%;
+      top: calc(var(--topbar-height) + 12px);
+      transform: translateX(-50%);
+      z-index: 990;
+      width: min(92vw, 430px);
+      padding: 10px;
+      border-radius: 12px;
+      background: rgba(6, 16, 31, .94);
+      border: 1px solid #00ffaa;
+      color: white;
+      text-align: center;
+      font-size: 12px;
+      line-height: 1.35;
+      box-shadow: 0 10px 26px rgba(0,0,0,.28);
+    }
+
+    #iframe-stuck-panel button {
+      margin-top: 8px;
+      padding: 9px 10px;
+      border-radius: 8px;
+      background: #00ffaa;
+      color: #06101f;
+      font-size: 11px;
+      font-weight: 900;
+    }
+
   </style>
 </head>
 
@@ -527,7 +587,7 @@
         1. Gunakan 1 smartphone dan pastikan login email Google sebelum mulai.<br>
         2. Isi semua petanyaan dengan benar, jujur dan tidak menyontek.<br>
         3. Gunakan hanya bagian kiri layar untuk scroll dan menjawab soal.<br>
-        4. Area kanan adalah zona pengawasan. Tidak boleh disentuh.<br>
+        4. Area kanan adalah zona pengawasan. Bagian bawah layar tetap aman untuk tombol Google Form.<br>
         5. Tombol Selesai akan muncul saat semua soal telah dikerjakan atau ujian berjalan 30 menit.
       </div>
 
@@ -554,7 +614,7 @@
       </div>
 
       <div class="small-note">
-        Setelah database terbaca, mapel berikutnya lebih cepat karena memakai cache.
+        Gunakan Chrome/Edge terbaru. Kamera dibuat ringan untuk HP lama. Jika Google Form macet, gunakan tombol Muat Ulang Soal yang muncul otomatis.
       </div>
     </div>
   </div>
@@ -590,6 +650,12 @@
     </div>
 
     <div id="right-touch-guard"></div>
+    <div id="bottom-safe-note">Area bawah aman untuk tombol Form</div>
+    <div id="iframe-stuck-panel">
+      <b>Google Form terasa macet?</b><br>
+      Tunggu sebentar. Jika soal tetap tidak muncul, tekan tombol di bawah ini.
+      <button type="button" onclick="reloadIframeSoalMacet()">Muat Ulang Soal</button>
+    </div>
     <div id="watermark"></div>
     <video id="camera-monitor" autoplay playsinline muted></video>
   </div>
@@ -615,12 +681,16 @@
     const TOKEN_PENGAWAS = "GURUOTIB";
     const TOKEN_UJI_COBA = "JUJUR";
 
-    const BATAS_PERINGATAN_ZONA_KANAN = 1;
+    const BATAS_PERINGATAN_ZONA_KANAN = 3;
     const MIN_DURASI_TOMBOL_SELESAI_MS = 30 * 60 * 1000; // cadangan 30 menit
     const MIN_LOAD_FORM_SELESAI = 2; // Form 3 bagian: 1 Identitas, 2 Soal, 3 Pernyataan
 
-    const DATABASE_CACHE_TTL = 60 * 60 * 1000; // 1 jam
-    const DATABASE_FETCH_TIMEOUT = 5500;
+    const DATABASE_CACHE_TTL = 4 * 60 * 60 * 1000; // 4 jam agar mapel berikutnya lebih cepat
+    const DATABASE_FETCH_TIMEOUT = 4000; // batas tunggu database 4 detik
+
+    // Kamera dibuat ringan agar lebih cocok untuk banyak tipe HP/browser.
+    const CAMERA_TIMEOUT = 8000;
+    const CAMERA_FAIL_LIMIT = 3;
 
     // ============================================================
     // VARIABEL
@@ -683,6 +753,9 @@
     let guardGestureSudahDiproses = false;
     let tombolSelesaiAktif = false;
     let formLoadCount = 0;
+    let jumlahGagalKamera = 0;
+    let iframeLoadTimer = null;
+    let iframeReloadManual = false;
 
     // ============================================================
     // LOAD AWAL
@@ -899,7 +972,7 @@
         await mintaIzinKamera();
         mulaiUjian();
       } catch (error) {
-        alert("Kamera wajib diaktifkan untuk mengikuti ujian.");
+        alert("Kamera belum bisa aktif. Gunakan Chrome/Edge terbaru, izinkan kamera, tutup aplikasi kamera lain, lalu coba lagi.");
       }
     }
 
@@ -908,6 +981,7 @@
       statusTerkunci = false;
       jumlahPelanggaran = 0;
       jumlahSentuhanZonaKanan = 0;
+      jumlahGagalKamera = 0;
       tombolSelesaiAktif = false;
       formLoadCount = 0;
       examStartedAt = Date.now();
@@ -932,7 +1006,14 @@
       const iframe = document.getElementById("ujian-frame");
 
       iframe.onload = function() {
+        sembunyikanPanelIframeMacet();
+
         if (!examAktif || statusTerkunci) return;
+
+        if (iframeReloadManual) {
+          iframeReloadManual = false;
+          return;
+        }
 
         formLoadCount++;
 
@@ -943,6 +1024,7 @@
         cekTombolSelesaiTertunda();
       };
 
+      mulaiPantauIframeMacet();
       iframe.src = linkGoogleForm;
 
       masukFullscreen();
@@ -977,21 +1059,101 @@
     // KAMERA
     // ============================================================
     function mintaIzinKamera() {
-      return new Promise((resolve, reject) => {
+      return new Promise(async (resolve, reject) => {
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-          reject(new Error("Browser tidak mendukung kamera."));
+          reject(new Error("Browser tidak mendukung kamera. Gunakan Chrome/Edge terbaru."));
           return;
         }
 
-        navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false })
-          .then(stream => {
+        const opsiKamera = [
+          {
+            video: {
+              facingMode: "user",
+              width: { ideal: 240, max: 320 },
+              height: { ideal: 180, max: 240 },
+              frameRate: { ideal: 6, max: 10 }
+            },
+            audio: false
+          },
+          {
+            video: {
+              width: { ideal: 240, max: 320 },
+              height: { ideal: 180, max: 240 },
+              frameRate: { ideal: 6, max: 10 }
+            },
+            audio: false
+          },
+          {
+            video: {
+              width: { ideal: 160, max: 240 },
+              height: { ideal: 120, max: 180 },
+              frameRate: { ideal: 5, max: 8 }
+            },
+            audio: false
+          },
+          {
+            video: true,
+            audio: false
+          }
+        ];
+
+        let errorTerakhir = null;
+
+        for (const opsi of opsiKamera) {
+          try {
+            const stream = await getUserMediaDenganTimeout(opsi, CAMERA_TIMEOUT);
+
             lokalStream = stream;
-            document.getElementById("camera-monitor").srcObject = stream;
+            jumlahGagalKamera = 0;
+
+            const video = document.getElementById("camera-monitor");
+            video.srcObject = stream;
+
+            try {
+              await video.play();
+            } catch (e) {}
+
             document.getElementById("camera-label").innerText = "Kamera Aktif";
             updateChecklist();
             resolve(stream);
+            return;
+          } catch (error) {
+            errorTerakhir = error;
+          }
+        }
+
+        reject(errorTerakhir || new Error("Kamera belum bisa diaktifkan."));
+      });
+    }
+
+    function getUserMediaDenganTimeout(constraints, timeoutMs) {
+      return new Promise((resolve, reject) => {
+        let selesai = false;
+
+        const timer = setTimeout(() => {
+          if (selesai) return;
+          selesai = true;
+          reject(new Error("Timeout kamera."));
+        }, timeoutMs);
+
+        navigator.mediaDevices.getUserMedia(constraints)
+          .then(stream => {
+            if (selesai) {
+              stream.getTracks().forEach(track => track.stop());
+              return;
+            }
+
+            selesai = true;
+            clearTimeout(timer);
+            resolve(stream);
           })
-          .catch(reject);
+          .catch(error => {
+            if (selesai) return;
+
+            selesai = true;
+            clearTimeout(timer);
+            reject(error);
+          });
       });
     }
 
@@ -1001,16 +1163,29 @@
       cameraCheckInterval = setInterval(() => {
         if (!examAktif || statusTerkunci) return;
 
+        let kameraBermasalah = false;
+
         if (!lokalStream) {
-          prosesPelanggaran("Kamera tidak aktif atau dimatikan.");
+          kameraBermasalah = true;
+        } else {
+          const tracks = lokalStream.getVideoTracks();
+          kameraBermasalah = !tracks.length || tracks[0].readyState !== "live";
+        }
+
+        if (kameraBermasalah) {
+          jumlahGagalKamera++;
+          document.getElementById("camera-label").innerText = `Kamera ${jumlahGagalKamera}/${CAMERA_FAIL_LIMIT}`;
+
+          if (jumlahGagalKamera >= CAMERA_FAIL_LIMIT) {
+            prosesPelanggaran("Kamera tidak aktif atau terputus beberapa kali saat ujian berlangsung.");
+          }
+
           return;
         }
 
-        const tracks = lokalStream.getVideoTracks();
-        if (!tracks.length || tracks[0].readyState !== "live" || tracks[0].muted) {
-          prosesPelanggaran("Kamera terputus atau dimatikan saat ujian berlangsung.");
-        }
-      }, 2500);
+        jumlahGagalKamera = 0;
+        document.getElementById("camera-label").innerText = "Kamera Aktif";
+      }, 5000);
     }
 
     // ============================================================
@@ -1086,6 +1261,8 @@
         lokalStream.getTracks().forEach(track => track.stop());
         lokalStream = null;
       }
+
+      sembunyikanPanelIframeMacet();
 
       const iframe = document.getElementById("ujian-frame");
       iframe.onload = null;
@@ -1211,7 +1388,7 @@
           if (!examAktif || statusTerkunci || guardGestureSudahDiproses) return;
           guardGestureSudahDiproses = true;
           prosesZonaKananDenganToleransi("Tekan lama di zona kanan terdeteksi.");
-        }, 650);
+        }, 2200);
       }, { passive: false });
 
       guard.addEventListener("touchmove", function(event) {
@@ -1229,7 +1406,7 @@
           guardLongPressTimer = null;
         }
 
-        if (!guardGestureSudahDiproses && (geserX > 16 || geserY > 16)) {
+        if (!guardGestureSudahDiproses && (geserX > 30 || geserY > 30)) {
           guardGestureSudahDiproses = true;
           prosesZonaKananDenganToleransi("Gerakan di zona kanan terdeteksi.");
         }
@@ -1247,7 +1424,7 @@
         }
 
         const lamaSentuh = Date.now() - guardTouchStartTime;
-        if (!guardGestureSudahDiproses && lamaSentuh >= 40) {
+        if (!guardGestureSudahDiproses && lamaSentuh >= 180) {
           guardGestureSudahDiproses = true;
           prosesZonaKananDenganToleransi("Sentuhan di zona kanan terdeteksi.");
         }
@@ -1273,6 +1450,57 @@
       warning.innerText = teks;
       warning.style.display = "block";
       setTimeout(() => { warning.style.display = "none"; }, 4500);
+    }
+
+
+    // ============================================================
+    // GOOGLE FORM / IFRAME MACET
+    // ============================================================
+    function mulaiPantauIframeMacet() {
+      sembunyikanPanelIframeMacet();
+
+      if (iframeLoadTimer) clearTimeout(iframeLoadTimer);
+
+      iframeLoadTimer = setTimeout(() => {
+        if (!examAktif || statusTerkunci) return;
+        tampilkanPanelIframeMacet();
+      }, 15000);
+    }
+
+    function tampilkanPanelIframeMacet() {
+      const panel = document.getElementById("iframe-stuck-panel");
+      if (panel) panel.style.display = "block";
+    }
+
+    function sembunyikanPanelIframeMacet() {
+      if (iframeLoadTimer) {
+        clearTimeout(iframeLoadTimer);
+        iframeLoadTimer = null;
+      }
+
+      const panel = document.getElementById("iframe-stuck-panel");
+      if (panel) panel.style.display = "none";
+    }
+
+    function reloadIframeSoalMacet() {
+      if (!examAktif || statusTerkunci) return;
+
+      const yakin = confirm("Muat ulang Google Form? Gunakan hanya jika soal benar-benar macet. Jawaban yang belum tersimpan di Google Form bisa hilang.");
+
+      if (!yakin) return;
+
+      const iframe = document.getElementById("ujian-frame");
+      iframeReloadManual = true;
+      mulaiPantauIframeMacet();
+
+      const srcSekarang = iframe.src || linkGoogleForm;
+      iframe.src = "about:blank";
+
+      setTimeout(() => {
+        iframe.src = srcSekarang.includes("?")
+          ? `${srcSekarang}&reload=${Date.now()}`
+          : `${srcSekarang}?reload=${Date.now()}`;
+      }, 350);
     }
 
     // ============================================================
@@ -1339,7 +1567,7 @@
           if (document.hidden || !fullscreenAktif || layarMengecilMencurigakan()) {
             prosesPelanggaran("Popup, tab, split screen, atau aplikasi lain terdeteksi.");
           }
-        }, 900);
+        }, 2500);
       });
 
       window.addEventListener("focus", () => {
@@ -1445,7 +1673,7 @@
         if (!examAktif || statusTerkunci) return;
         tampilIndikator("Klik tahan terdeteksi");
         prosesPelanggaran("Klik tahan terdeteksi. Aktivitas ini tidak diperlukan saat ujian.");
-      }, 900);
+      }, 2500);
     }, true);
 
     document.addEventListener("touchmove", function(event) {
@@ -1460,7 +1688,7 @@
         longPressTimer = null;
       }
 
-      if (geserX > 75 && geserX > geserY * 1.7) {
+      if (geserX > 110 && geserX > geserY * 2) {
         event.preventDefault();
         tampilIndikator("Geser kiri/kanan terdeteksi");
         prosesPelanggaran("Geser kiri/kanan terdeteksi. Saat ujian hanya boleh scroll atas-bawah.");
@@ -1892,5 +2120,4 @@
     }
   </script>
 </body>
-</html>
 </html>
