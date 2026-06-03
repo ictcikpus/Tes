@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Cikpus CyberLock - XI</title>
+  <title>Cikpus CyberLock</title>
   <link rel="manifest" href="manifest.webmanifest">
   <meta name="theme-color" content="#06101f">
   <meta name="mobile-web-app-capable" content="yes">
@@ -635,6 +635,9 @@
       margin-bottom: 12px;
     }
     .warning-popup-button {
+      touch-action: manipulation;
+      user-select: none;
+      -webkit-user-select: none;
       width: 100%;
       border: none;
       border-radius: 11px;
@@ -711,6 +714,82 @@
       text-align: left;
     }
 
+
+    /* OPTIMASI RINGAN: popup peringatan dibuat non-blocking agar iframe Google Form tidak terasa macet */
+    #warning-popup {
+      display: none;
+      position: fixed !important;
+      inset: auto !important;
+      top: calc(var(--topbar-height) + 10px) !important;
+      left: 50% !important;
+      transform: translateX(-50%) !important;
+      z-index: 2147483000 !important;
+      width: min(92vw, 430px) !important;
+      padding: 0 !important;
+      background: transparent !important;
+      backdrop-filter: none !important;
+      pointer-events: none !important;
+      touch-action: auto !important;
+    }
+
+    .warning-popup-card {
+      width: 100% !important;
+      border: 2px solid #f59e0b;
+      border-radius: 16px;
+      background: rgba(8, 14, 28, .96);
+      padding: 14px;
+      box-shadow: 0 8px 22px rgba(0,0,0,.26);
+      animation: none !important;
+      pointer-events: auto !important;
+    }
+
+    .warning-popup-icon {
+      width: 42px !important;
+      height: 42px !important;
+      font-size: 26px !important;
+      box-shadow: none !important;
+      margin-bottom: 6px !important;
+    }
+
+    .warning-popup-title {
+      font-size: clamp(15px, 4vw, 18px) !important;
+      margin: 2px 0 5px !important;
+    }
+
+    .warning-popup-message {
+      font-size: clamp(12px, 3.3vw, 14px) !important;
+      line-height: 1.42 !important;
+      margin: 6px 0 8px !important;
+    }
+
+    .warning-popup-note {
+      font-size: clamp(10.5px, 3vw, 12px) !important;
+      margin-bottom: 8px !important;
+    }
+
+    .warning-technical-note {
+      margin-top: 8px !important;
+      padding: 8px !important;
+      font-size: clamp(10px, 2.8vw, 11px) !important;
+      line-height: 1.35 !important;
+    }
+
+    .warning-popup-button {
+      padding: 10px !important;
+      font-size: 12px !important;
+      touch-action: manipulation !important;
+    }
+
+    body.camera-lite #camera-monitor {
+      display: none !important;
+    }
+
+    body.camera-lite #camera-label::after {
+      content: " Lite";
+      color: #baffee;
+      font-weight: 700;
+    }
+
   </style>
 </head>
 
@@ -719,7 +798,7 @@
     <div class="panel" id="panel-konten">
       <h1 class="main-title">CIKPUS CYBERLOCK</h1>
       <div class="anti-cheat-title">Ujian Anti Curang !</div>
-      <div class="sub-title">KELAS X - GOOGLE FORM SECURE</div>
+      <div class="sub-title">KELAS XI - GOOGLE FORM SECURE</div>
 
        <div class="alert-box">
         <b>PERINGATAN UJIAN:</b><br>
@@ -739,7 +818,7 @@
       <div class="info-box" id="compat-box">
         <b>CEK PERANGKAT:</b><br>
         Gunakan <b>Chrome/Edge terbaru</b>. Minimal disarankan Chrome/Edge <b>84+</b>, rekomendasi <b>100+</b>.
-        Hindari browser bawaan HP lama, UC Browser, Opera Mini.
+        Hindari browser bawaan HP lama, UC Browser, Opera Mini, dan membuka link dari WhatsApp/Instagram.
       </div>
 
       <div class="form-group">
@@ -854,6 +933,7 @@
     // Kamera dibuat ringan agar lebih cocok untuk banyak tipe HP/browser.
     const CAMERA_TIMEOUT = 8000;
     const CAMERA_FAIL_LIMIT = 3;
+    const TAMPILKAN_PREVIEW_KAMERA = false; // false = kamera tetap aktif, tapi preview video tidak dirender agar HP lama lebih ringan
     const BATAS_PERINGATAN_BERTINGKAT = 2; // 1x peringatan, 2x peringatan + bunyi, 3x terkunci untuk jenis yang sama
     const BATAS_TOTAL_AKTIVITAS_MENCURIGAKAN = 3; // total aktivitas mencurigakan apa pun, 3x terkunci // 1x peringatan, 2x peringatan + bunyi, 3x terkunci
 
@@ -1285,9 +1365,18 @@
             jumlahGagalKamera = 0;
 
             const video = document.getElementById("camera-monitor");
-            video.srcObject = stream;
 
-            try { await video.play(); } catch (e) {}
+            if (TAMPILKAN_PREVIEW_KAMERA && video) {
+              video.srcObject = stream;
+              try { await video.play(); } catch (e) {}
+              document.body.classList.remove("camera-lite");
+            } else {
+              if (video) {
+                video.pause();
+                video.srcObject = null;
+              }
+              document.body.classList.add("camera-lite");
+            }
 
             document.getElementById("camera-label").innerText = "Kamera Aktif";
             updateChecklist();
@@ -1366,7 +1455,7 @@
         jumlahGagalKamera = 0;
         resetPeringatanAktivitas("kamera");
         document.getElementById("camera-label").innerText = "Kamera Aktif";
-      }, 8000);
+      }, 10000);
     }
 
     // ============================================================
@@ -1450,7 +1539,7 @@
       iframe.onload = null;
       iframe.src = "about:blank";
 
-      document.body.classList.remove("exam-mode", "locked-mode");
+      document.body.classList.remove("exam-mode", "locked-mode", "camera-lite");
       document.body.style.overflow = "";
       document.documentElement.style.overflow = "";
       document.getElementById("exam-screen").style.display = "none";
@@ -1847,6 +1936,7 @@
 
     ["copy", "cut", "paste", "contextmenu", "dragstart", "selectstart"].forEach(evt => {
       document.addEventListener(evt, event => {
+        if (eventDariPopupPeringatan(event)) return;
         event.preventDefault();
         if (examAktif && !statusTerkunci) {
           beriPeringatanAtauKunci(
@@ -1860,6 +1950,7 @@
     });
 
     function eventDariPanelKunci(event) {
+      if (eventDariPopupPeringatan(event)) return true;
       const overlay = document.getElementById("lock-overlay");
       const panel = document.querySelector(".lock-panel");
 
@@ -1988,7 +2079,7 @@
         const ctx = audioContextPeringatan;
         const gain = ctx.createGain();
         gain.gain.setValueAtTime(0.0001, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.16, ctx.currentTime + 0.03);
+        gain.gain.exponentialRampToValueAtTime(0.10, ctx.currentTime + 0.03);
         gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.42);
         gain.connect(ctx.destination);
 
@@ -1997,7 +2088,7 @@
         osc.frequency.setValueAtTime(880, ctx.currentTime);
         osc.connect(gain);
         osc.start(ctx.currentTime);
-        osc.stop(ctx.currentTime + 0.42);
+        osc.stop(ctx.currentTime + 0.22);
       } catch (error) {}
     }
 
@@ -2039,7 +2130,19 @@
 
       setTimeout(() => {
         tutupPopupPeringatan();
-      }, jumlah === 1 ? 6200 : 8200);
+      }, jumlah === 1 ? 4800 : 6500);
+    }
+
+
+    function popupPeringatanSedangTampil() {
+      const popup = document.getElementById("warning-popup");
+      return !!(popup && popup.style.display === "flex");
+    }
+
+    function eventDariPopupPeringatan(event) {
+      const popup = document.getElementById("warning-popup");
+      if (!popup || popup.style.display !== "flex") return false;
+      return popup.contains(event.target);
     }
 
     function tutupPopupPeringatan() {
@@ -2187,7 +2290,7 @@
         const ctx = audioContextPeringatan;
         const gain = ctx.createGain();
         gain.gain.setValueAtTime(0.0001, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.12, ctx.currentTime + 0.03);
+        gain.gain.exponentialRampToValueAtTime(0.09, ctx.currentTime + 0.03);
         gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.30);
         gain.connect(ctx.destination);
 
@@ -2196,7 +2299,7 @@
         osc.frequency.setValueAtTime(760, ctx.currentTime);
         osc.connect(gain);
         osc.start(ctx.currentTime);
-        osc.stop(ctx.currentTime + 0.30);
+        osc.stop(ctx.currentTime + 0.22);
       } catch (error) {}
     }
 
@@ -2375,9 +2478,7 @@
 
       aktifkanToleransiPerubahanLayar(4500);
 
-      setTimeout(() => {
-        if (examAktif && !statusTerkunci) masukFullscreen();
-      }, 900);
+      // Mode ringan: tidak memaksa fullscreen ulang pada setiap peringatan.
     }
 
     function resetPeringatanAktivitas(kategori) {
@@ -2420,6 +2521,7 @@
       }
 
       document.getElementById("camera-label").innerText = "Terkunci";
+      document.body.classList.add("camera-lite");
       mulaiPaksaFullscreenTerkunci();
 
       setTimeout(() => {
