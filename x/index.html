@@ -937,6 +937,166 @@ body.iframe-security-blocked #right-touch-guard {
   }
 }
 
+  
+/* ============================================================
+   UPDATE ANTI AI / GOOGLE SEARCH TEXT SELECTION
+   Parent web tidak bisa mematikan seleksi teks di dalam iframe Google Form.
+   Mitigasi: area teks soal dilapisi guard transparan agar long press tidak
+   langsung masuk ke iframe dan memunculkan Ask AI/Search Google.
+   ============================================================ */
+
+:root {
+  --anti-ai-guard-height: clamp(85px, 26vh, 220px);
+}
+
+#anti-ai-iframe-guard {
+  display: none;
+  position: fixed;
+  top: calc(var(--topbar-height) + 6px);
+  left: 0;
+  right: var(--zona-kanan);
+  height: var(--anti-ai-guard-height);
+  z-index: 982;
+  background:
+    repeating-linear-gradient(
+      135deg,
+      rgba(0, 255, 170, .015) 0px,
+      rgba(0, 255, 170, .015) 8px,
+      rgba(255, 255, 255, 0) 8px,
+      rgba(255, 255, 255, 0) 18px
+    ),
+    rgba(0, 255, 170, .008);
+  border-bottom: 1px dashed rgba(0, 255, 170, .18);
+  pointer-events: auto;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+body.exam-mode #anti-ai-iframe-guard.guard-on {
+  display: block;
+}
+
+body.exam-mode.anti-ai-strict #anti-ai-iframe-guard.guard-on {
+  top: var(--topbar-height);
+  bottom: var(--zona-bawah-aman);
+  height: auto;
+}
+
+#anti-ai-iframe-guard .anti-ai-note {
+  position: absolute;
+  left: 6px;
+  top: 6px;
+  max-width: min(52vw, 240px);
+  border-radius: 8px;
+  padding: 5px 7px;
+  background: rgba(6, 16, 31, .58);
+  color: rgba(186, 255, 238, .78);
+  font-size: clamp(7px, 2vw, 9px);
+  font-weight: 800;
+  line-height: 1.25;
+  pointer-events: none;
+}
+
+@media (orientation: landscape) {
+  :root {
+    --anti-ai-guard-height: clamp(70px, 30vh, 160px);
+  }
+
+  #anti-ai-iframe-guard .anti-ai-note {
+    font-size: 7px;
+    max-width: 180px;
+    opacity: .75;
+  }
+}
+
+@media (max-width: 380px), (max-height: 680px) {
+  :root {
+    --anti-ai-guard-height: clamp(70px, 24vh, 145px);
+  }
+
+  #anti-ai-iframe-guard .anti-ai-note {
+    display: none;
+  }
+}
+
+  
+/* ============================================================
+   UPDATE SOFT ANTI COPY:
+   Menahan layar / salin teks soal TIDAK masuk hitungan pelanggaran.
+   Sistem hanya mencegah long press / Ask AI / Search Google pada area soal.
+   Split screen, keluar fullscreen, pindah tab tetap pelanggaran.
+   ============================================================ */
+
+:root {
+  /* Area pelindung teks soal. Dibuat lebih luas, tetapi tetap tidak menutup area bawah
+     agar siswa masih bisa memilih jawaban dan klik tombol Google Form. */
+  --anti-ai-guard-height: clamp(118px, 34vh, 280px);
+}
+
+#anti-ai-iframe-guard {
+  cursor: default;
+}
+
+#anti-ai-iframe-guard .anti-ai-note {
+  background: rgba(6, 16, 31, .46) !important;
+  color: rgba(186, 255, 238, .65) !important;
+}
+
+@media (orientation: landscape) {
+  :root {
+    --anti-ai-guard-height: clamp(78px, 36vh, 190px);
+  }
+}
+
+  
+/* ============================================================
+   UPDATE RESPONSIVE ANTI-COPY GUARD
+   Guard menyesuaikan ukuran HP agar siswa tidak kesulitan memilih jawaban.
+   ============================================================ */
+
+:root {
+  --anti-ai-guard-height: clamp(85px, 26vh, 220px);
+}
+
+/* HP kecil / layar pendek */
+@media (max-width: 380px), (max-height: 680px) {
+  :root {
+    --anti-ai-guard-height: clamp(55px, 18vh, 125px);
+    --zona-bawah-aman: clamp(170px, 36vh, 330px);
+  }
+
+  #anti-ai-iframe-guard .anti-ai-note {
+    display: none !important;
+  }
+
+  #anti-ai-iframe-guard {
+    border-bottom: 1px dashed rgba(0, 255, 170, .10);
+  }
+}
+
+/* Landscape HP: guard dibuat pendek agar pilihan jawaban dan tombol tetap mudah diklik */
+@media (orientation: landscape) and (max-height: 520px) {
+  :root {
+    --anti-ai-guard-height: clamp(45px, 20vh, 105px);
+    --zona-kanan: 28vw;
+    --zona-bawah-aman: clamp(80px, 24vh, 150px);
+  }
+
+  #anti-ai-iframe-guard .anti-ai-note {
+    display: none !important;
+  }
+}
+
+/* Layar sangat kecil */
+@media (max-width: 340px), (max-height: 600px) {
+  :root {
+    --anti-ai-guard-height: clamp(42px, 16vh, 95px);
+    --zona-bawah-aman: clamp(145px, 34vh, 285px);
+  }
+}
+
   </style>
 </head>
 
@@ -986,7 +1146,7 @@ body.iframe-security-blocked #right-touch-guard {
       </div>
 
       <div class="small-note">
-        Mode terbaru: kamera bersifat opsional untuk iPhone/HP lama. Pengawasan utama tetap fullscreen, split screen, popup/floating window, zona pengawasan, dan peringatan bertingkat.
+        Update responsive: pelindung teks soal otomatis mengecil di HP kecil/landscape agar siswa tetap mudah memilih jawaban dan menekan tombol Google Form.
       </div>
     </div>
   </div>
@@ -1022,6 +1182,13 @@ body.iframe-security-blocked #right-touch-guard {
     </div>
 
     
+    
+    <div id="anti-ai-iframe-guard">
+      <div class="anti-ai-note">
+        Area teks soal dilindungi dari tekan lama / Ask AI.
+      </div>
+    </div>
+
     <div id="fullscreen-gate-overlay">
       <div class="fullscreen-gate-card">
         <div class="fullscreen-gate-icon">!</div>
@@ -3138,5 +3305,407 @@ body.iframe-security-blocked #right-touch-guard {
         .replace(/'/g, "&#039;");
     }
   </script>
+<script>
+
+/* ============================================================
+   UPDATE ANTI AI / SEARCH GOOGLE PADA TEKS GOOGLE FORM
+   ============================================================ */
+(function () {
+  "use strict";
+
+  /* Mode:
+     "top"    = guard hanya di area atas/teks soal. Lebih nyaman, disarankan.
+     "strict" = guard menutup hampir seluruh iframe kecuali area bawah. Lebih aman tapi kurang nyaman.
+     "off"    = guard dimatikan.
+  */
+  const ANTI_AI_GUARD_MODE = "top";
+
+  let antiAITouchStartX = 0;
+  let antiAITouchStartY = 0;
+  let antiAITouchStartAt = 0;
+  let antiAILongTimer = null;
+  let antiAIHintTimer = null;
+  let antiAITapCount = 0;
+  let antiAITapTimer = null;
+  let antiAISudahPeringatan = false;
+
+  function ujianAktifAntiAI() {
+    try {
+      return !!examAktif && !statusTerkunci;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function antiAIGuardEl() {
+    return document.getElementById("anti-ai-iframe-guard");
+  }
+
+  function tampilHintAntiAI(teks) {
+    try {
+      tampilPeringatanZonaKanan(teks);
+    } catch (e) {}
+
+    const guard = antiAIGuardEl();
+    if (!guard) return;
+
+    const note = guard.querySelector(".anti-ai-note");
+    if (!note) return;
+
+    note.textContent = teks;
+    note.style.opacity = "1";
+
+    clearTimeout(antiAIHintTimer);
+    antiAIHintTimer = setTimeout(() => {
+      note.textContent = "Area teks soal dilindungi dari tekan lama / Ask AI.";
+      note.style.opacity = "";
+    }, 2500);
+  }
+
+  function aktifkanAntiAIGuard() {
+    const guard = antiAIGuardEl();
+    if (!guard) return;
+
+    if (ANTI_AI_GUARD_MODE === "off") {
+      guard.classList.remove("guard-on");
+      document.body.classList.remove("anti-ai-strict");
+      return;
+    }
+
+    guard.classList.add("guard-on");
+
+    if (ANTI_AI_GUARD_MODE === "strict") {
+      document.body.classList.add("anti-ai-strict");
+    } else {
+      document.body.classList.remove("anti-ai-strict");
+    }
+  }
+
+  function peringatkanAntiAI(alasan) {
+    if (!ujianAktifAntiAI()) return;
+
+    antiAISudahPeringatan = true;
+
+    tampilHintAntiAI(
+      "Jangan menahan teks soal. Sistem mencegah Search Google / Ask AI. Lanjutkan dengan memilih jawaban pada area Google Form."
+    );
+
+    try {
+      tulisLog("Anti-copy guard aktif tanpa pelanggaran: " + (alasan || "Long press/copy dicegah."));
+    } catch (e) {}
+  }
+
+
+  function pasangAntiAIGuardListener() {
+    const guard = antiAIGuardEl();
+    if (!guard || guard.dataset.antiAiReady === "1") return;
+
+    guard.dataset.antiAiReady = "1";
+
+    guard.addEventListener("touchstart", function (event) {
+      if (!ujianAktifAntiAI()) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      const t = event.touches && event.touches[0];
+      if (!t) return;
+
+      antiAITouchStartX = t.clientX;
+      antiAITouchStartY = t.clientY;
+      antiAITouchStartAt = Date.now();
+      antiAISudahPeringatan = false;
+
+      clearTimeout(antiAILongTimer);
+      antiAILongTimer = setTimeout(() => {
+        if (!ujianAktifAntiAI() || antiAISudahPeringatan) return;
+        peringatkanAntiAI("Tekan lama pada area teks soal/iframe terdeteksi.");
+      }, 900);
+    }, { passive: false });
+
+    guard.addEventListener("touchmove", function (event) {
+      if (!ujianAktifAntiAI()) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      const t = event.touches && event.touches[0];
+      if (!t) return;
+
+      const dx = Math.abs(t.clientX - antiAITouchStartX);
+      const dy = Math.abs(t.clientY - antiAITouchStartY);
+      const durasi = Date.now() - antiAITouchStartAt;
+
+      if (dy > 22 || dx > 22) {
+        clearTimeout(antiAILongTimer);
+      }
+
+      if (!antiAISudahPeringatan && durasi > 650 && dx < 36 && dy < 36) {
+        peringatkanAntiAI("Gestur tahan/seleksi teks pada area soal terdeteksi.");
+      }
+    }, { passive: false });
+
+    guard.addEventListener("touchend", function (event) {
+      if (!ujianAktifAntiAI()) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      clearTimeout(antiAILongTimer);
+
+      const durasi = Date.now() - antiAITouchStartAt;
+
+      if (antiAISudahPeringatan) return;
+
+      if (durasi < 420) {
+        antiAITapCount++;
+
+        clearTimeout(antiAITapTimer);
+        antiAITapTimer = setTimeout(() => {
+          antiAITapCount = 0;
+        }, 3000);
+
+        if (antiAITapCount >= 3) {
+          antiAITapCount = 0;
+          peringatkanAntiAI("Sentuhan berulang pada area teks soal yang dilindungi terdeteksi.");
+          return;
+        }
+
+        tampilHintAntiAI("Area teks soal dilindungi. Jangan tekan lama/blok teks. Gunakan area jawaban dan tombol Google Form.");
+        return;
+      }
+
+      if (durasi >= 700) {
+        peringatkanAntiAI("Sentuhan cukup lama pada area teks soal terdeteksi.");
+      }
+    }, { passive: false });
+
+    guard.addEventListener("contextmenu", function (event) {
+      event.preventDefault();
+      event.stopPropagation();
+      peringatkanAntiAI("Menu konteks pada area soal terdeteksi.");
+    }, true);
+
+    guard.addEventListener("mousedown", function (event) {
+      if (!ujianAktifAntiAI()) return;
+      event.preventDefault();
+      event.stopPropagation();
+    }, true);
+  }
+
+  function mulaiAntiAIGuard() {
+    aktifkanAntiAIGuard();
+    pasangAntiAIGuardListener();
+  }
+
+  window.cikpusMulaiAntiAIGuard = mulaiAntiAIGuard;
+
+  try {
+    const oldMulaiUjian = typeof mulaiUjian === "function" ? mulaiUjian : null;
+    if (oldMulaiUjian) {
+      window.mulaiUjian = function () {
+        oldMulaiUjian();
+        setTimeout(mulaiAntiAIGuard, 300);
+      };
+    }
+  } catch (e) {}
+
+  document.addEventListener("fullscreenchange", function () {
+    if (ujianAktifAntiAI()) setTimeout(mulaiAntiAIGuard, 500);
+  }, true);
+
+  setInterval(function () {
+    if (ujianAktifAntiAI()) mulaiAntiAIGuard();
+  }, 3000);
+})();
+
+</script>
+<script>
+
+/* ============================================================
+   UPDATE SOFT ANTI COPY / NO WARNING
+   Menahan teks, salin, dan Ask AI dicegah semampunya tanpa menambah
+   hitungan peringatan/pelanggaran. Pengawasan berat tetap pada:
+   fullscreen, split screen, pindah tab, popup/floating window.
+   ============================================================ */
+(function () {
+  "use strict";
+
+  const SOFT_ANTI_COPY_MODE = "answer_safe"; // answer_safe = disarankan untuk Google Form
+
+  function antiAIGuardElSoft() {
+    return document.getElementById("anti-ai-iframe-guard");
+  }
+
+  function ujianAktifSoftAntiCopy() {
+    try {
+      return !!examAktif && !statusTerkunci;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function tampilSoftAntiCopy(teks) {
+    try {
+      tampilPeringatanZonaKanan(teks);
+    } catch (e) {}
+
+    const guard = antiAIGuardElSoft();
+    if (!guard) return;
+
+    const note = guard.querySelector(".anti-ai-note");
+    if (!note) return;
+
+    note.textContent = teks;
+    note.style.opacity = "1";
+
+    setTimeout(() => {
+      note.textContent = "Area teks soal dilindungi dari tekan lama / Ask AI.";
+      note.style.opacity = "";
+    }, 2200);
+  }
+
+  function logSoftAntiCopy(alasan) {
+    try {
+      tulisLog("Soft Anti-Copy aktif tanpa pelanggaran: " + alasan);
+    } catch (e) {}
+  }
+
+  /* Override fungsi dari update anti-AI sebelumnya.
+     Sekarang tidak memanggil beriPeringatanAtauKunci dan tidak mengunci otomatis. */
+  window.peringatkanAntiAI = function (alasan) {
+    if (!ujianAktifSoftAntiCopy()) return;
+
+    tampilSoftAntiCopy(
+      "Jangan menahan teks soal. Sistem mencegah Search Google / Ask AI. Lanjutkan dengan memilih jawaban pada area Google Form."
+    );
+
+    logSoftAntiCopy(alasan || "Long press/copy dicegah.");
+  };
+
+  function pasangSoftGuardTambahan() {
+    const guard = antiAIGuardElSoft();
+    if (!guard || guard.dataset.softAntiCopyReady === "1") return;
+
+    guard.dataset.softAntiCopyReady = "1";
+    guard.classList.add("guard-on");
+    document.body.classList.remove("anti-ai-strict");
+
+    let startX = 0;
+    let startY = 0;
+    let startAt = 0;
+    let longTimer = null;
+
+    function bersihkanTimer() {
+      if (longTimer) {
+        clearTimeout(longTimer);
+        longTimer = null;
+      }
+    }
+
+    guard.addEventListener("touchstart", function (event) {
+      if (!ujianAktifSoftAntiCopy()) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      const t = event.touches && event.touches[0];
+      if (!t) return;
+
+      startX = t.clientX;
+      startY = t.clientY;
+      startAt = Date.now();
+
+      bersihkanTimer();
+      longTimer = setTimeout(() => {
+        window.peringatkanAntiAI("Tekan lama pada area teks soal dicegah.");
+      }, 720);
+    }, { passive: false });
+
+    guard.addEventListener("touchmove", function (event) {
+      if (!ujianAktifSoftAntiCopy()) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      const t = event.touches && event.touches[0];
+      if (!t) return;
+
+      const dx = Math.abs(t.clientX - startX);
+      const dy = Math.abs(t.clientY - startY);
+
+      /* Jika siswa sebenarnya ingin geser/scroll, jangan jadikan pelanggaran.
+         Karena overlay tidak bisa meneruskan scroll ke iframe lintas domain,
+         siswa diarahkan menggunakan area jawaban/bawah yang tetap terbuka. */
+      if (dx > 18 || dy > 18) {
+        bersihkanTimer();
+        tampilSoftAntiCopy("Untuk scroll dan menjawab, gunakan area Google Form yang tidak tertutup pelindung.");
+      }
+    }, { passive: false });
+
+    guard.addEventListener("touchend", function (event) {
+      if (!ujianAktifSoftAntiCopy()) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      const durasi = Date.now() - startAt;
+      bersihkanTimer();
+
+      if (durasi > 550) {
+        window.peringatkanAntiAI("Sentuhan lama pada area soal dicegah.");
+      } else {
+        tampilSoftAntiCopy("Area teks soal dilindungi. Tekan jawaban pada area Google Form yang terbuka.");
+      }
+    }, { passive: false });
+
+    guard.addEventListener("contextmenu", function (event) {
+      if (!ujianAktifSoftAntiCopy()) return;
+      event.preventDefault();
+      event.stopPropagation();
+      window.peringatkanAntiAI("Context menu/Search Google/Ask AI dicegah.");
+    }, true);
+
+    guard.addEventListener("selectstart", function (event) {
+      if (!ujianAktifSoftAntiCopy()) return;
+      event.preventDefault();
+      event.stopPropagation();
+      window.peringatkanAntiAI("Seleksi teks pada area soal dicegah.");
+    }, true);
+
+    guard.addEventListener("copy", function (event) {
+      if (!ujianAktifSoftAntiCopy()) return;
+      event.preventDefault();
+      event.stopPropagation();
+      window.peringatkanAntiAI("Copy teks pada area soal dicegah.");
+    }, true);
+  }
+
+  function aktifkanSoftAntiCopy() {
+    const guard = antiAIGuardElSoft();
+    if (!guard) return;
+
+    if (SOFT_ANTI_COPY_MODE === "off") {
+      guard.classList.remove("guard-on");
+      return;
+    }
+
+    guard.classList.add("guard-on");
+    document.body.classList.remove("anti-ai-strict");
+    pasangSoftGuardTambahan();
+  }
+
+  window.cikpusSoftAntiCopyAktif = aktifkanSoftAntiCopy;
+
+  setInterval(function () {
+    if (ujianAktifSoftAntiCopy()) aktifkanSoftAntiCopy();
+  }, 1600);
+
+  document.addEventListener("fullscreenchange", function () {
+    if (ujianAktifSoftAntiCopy()) setTimeout(aktifkanSoftAntiCopy, 400);
+  }, true);
+})();
+
+</script>
 </body>
 </html>
