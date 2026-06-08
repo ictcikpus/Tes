@@ -1228,6 +1228,52 @@ body.exam-mode #iframe-grid-soft-guard.grid-on {
   }
 }
 
+  
+/* ============================================================
+   UPDATE STRICT FOCUS:
+   - keluar tab / keluar fullscreen / split screen = langsung pelanggaran
+   - popup/floating window dan geser kiri-kanan = peringatan 1x, kedua terkunci
+   ============================================================ */
+
+#strict-focus-status {
+  display: none;
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--zona-bawah-aman) + 8px);
+  transform: translateX(-50%);
+  z-index: 1045;
+  width: min(92vw, 520px);
+  padding: 8px 11px;
+  border-radius: 12px;
+  background: rgba(6, 16, 31, .92);
+  color: #baffee;
+  border: 1px solid rgba(0,255,170,.38);
+  font-size: clamp(10.5px, 3vw, 12px);
+  font-weight: 800;
+  line-height: 1.35;
+  text-align: center;
+  pointer-events: none;
+  box-shadow: 0 6px 18px rgba(0,0,0,.22);
+}
+
+#strict-focus-status.warn {
+  display: block;
+  background: rgba(245, 158, 11, .94);
+  color: #111827;
+  border-color: rgba(245, 158, 11, .80);
+}
+
+#strict-focus-status.danger {
+  display: block;
+  background: rgba(239, 68, 68, .95);
+  color: white;
+  border-color: rgba(239, 68, 68, .85);
+}
+
+body.strict-focus-active #fullscreen-gate-overlay {
+  pointer-events: auto;
+}
+
   </style>
 </head>
 
@@ -1277,7 +1323,7 @@ body.exam-mode #iframe-grid-soft-guard.grid-on {
       </div>
 
       <div class="small-note">
-        Update Grid Soft Guard: zona pengawasan kanan dihilangkan. Area iframe dilindungi grid anti-salin/anti-AI tanpa menambah pelanggaran. Fullscreen, split screen, pindah tab/browser tetap pelanggaran.
+        Update Strict Focus: keluar fullscreen, split screen, dan pindah tab/browser langsung mengunci ujian. Popup/floating window dan geser kiri-kanan diberi peringatan 1x, jika terulang langsung terkunci.
       </div>
     </div>
   </div>
@@ -1321,6 +1367,9 @@ body.exam-mode #iframe-grid-soft-guard.grid-on {
     </div>
 
     
+    
+    <div id="strict-focus-status">Tetap fokus di halaman ujian. Jangan membuka tab, split screen, popup, atau floating window.</div>
+
     <div id="iframe-grid-soft-guard" aria-hidden="true"></div>
     <div id="grid-soft-message">Jangan coba-coba curang. Menahan teks, salin, Search Google, atau Ask AI dicegah oleh sistem.</div>
 
@@ -3855,8 +3904,8 @@ body.exam-mode #iframe-grid-soft-guard.grid-on {
   "use strict";
 
   const GRID_GUARD_MODE = "soft"; // "soft" aktif, "off" mati
-  const GRID_SIZE_NORMAL = 44;
-  const GRID_SIZE_SMALL = 38;
+  const GRID_SIZE_NORMAL = 20;
+  const GRID_SIZE_SMALL = 10;
   const GRID_CELL_NORMAL = 10;
   const GRID_CELL_SMALL = 8;
 
@@ -4091,6 +4140,385 @@ body.exam-mode #iframe-grid-soft-guard.grid-on {
       window.mulaiUjian = function () {
         oldMulaiUjian();
         setTimeout(aktifkanGridGuard, 500);
+      };
+    }
+  } catch (e) {}
+})();
+
+</script>
+<script>
+
+/* ============================================================
+   STRICT FOCUS RULES
+   - Keluar tab/browser, keluar fullscreen, split screen: langsung pelanggaran/kunci.
+   - Popup/floating window dan geser kiri-kanan: 1x peringatan, kedua kunci.
+   - Grid anti-copy tetap tidak dihitung pelanggaran.
+   ============================================================ */
+(function () {
+  "use strict";
+
+  const STRICT_START_GRACE = 3000;
+  const STRICT_CHECK_INTERVAL = 850;
+  const STRICT_SWIPE_THRESHOLD = 80;
+  const STRICT_POPUP_REPEAT_GAP = 1800;
+
+  let strictStartedAt = 0;
+  let strictActive = false;
+  let popupWarningUsed = false;
+  let swipeWarningUsed = false;
+  let lastPopupAt = 0;
+  let strictMsgTimer = null;
+  let gridStartX = 0;
+  let gridStartY = 0;
+  let gridStartAt = 0;
+  let locking = false;
+
+  function ujianAktifStrict() {
+    try {
+      return !!examAktif && !statusTerkunci;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function fullscreenAktifStrict() {
+    return !!(
+      document.fullscreenElement ||
+      document.webkitFullscreenElement ||
+      document.mozFullScreenElement ||
+      document.msFullscreenElement
+    );
+  }
+
+  function msgStrict(teks, jenis = "warn", durasi = 2600) {
+    const el = document.getElementById("strict-focus-status");
+    if (!el) return;
+
+    el.textContent = teks;
+    el.className = jenis;
+    el.style.display = "block";
+
+    clearTimeout(strictMsgTimer);
+    strictMsgTimer = setTimeout(() => {
+      el.className = "";
+      el.style.display = "none";
+    }, durasi);
+  }
+
+  function lockLangsung(kategori, alasan) {
+    if (!ujianAktifStrict() || locking) return;
+    locking = true;
+
+    msgStrict("Pelanggaran terdeteksi. Ujian dikunci.", "danger", 5000);
+
+    try {
+      tulisLog("STRICT LOCK: " + kategori + " - " + alasan);
+    } catch (e) {}
+
+    try {
+      prosesPelanggaran(alasan || kategori);
+    } catch (e) {
+      try {
+        kunciUjian(alasan || kategori);
+      } catch (err) {}
+    }
+
+    setTimeout(() => {
+      locking = false;
+    }, 3500);
+  }
+
+  function peringatanSekaliLaluKunci(tipe, pesanPeringatan, alasanKunci) {
+    if (!ujianAktifStrict()) return;
+
+    if (tipe === "popup") {
+      if (popupWarningUsed) {
+        lockLangsung("popup/floating window", alasanKunci);
+        return;
+      }
+      popupWarningUsed = true;
+    }
+
+    if (tipe === "swipe") {
+      if (swipeWarningUsed) {
+        lockLangsung("geser kiri/kanan", alasanKunci);
+        return;
+      }
+      swipeWarningUsed = true;
+    }
+
+    msgStrict(pesanPeringatan + " Jika terulang, ujian akan dikunci.", "warn", 5200);
+
+    try {
+      tampilkanPopupPeringatan(
+        tipe === "popup" ? "popup / jendela mengambang" : "geser kiri kanan",
+        pesanPeringatan + " Jika terulang, ujian akan langsung dikunci.",
+        2,
+        3,
+        true
+      );
+    } catch (e) {
+      try {
+        alert(pesanPeringatan + "\\nJika terulang, ujian akan langsung dikunci.");
+      } catch (err) {}
+    }
+
+    try {
+      tulisLog("STRICT WARNING ONCE: " + tipe + " - " + pesanPeringatan);
+    } catch (e) {}
+  }
+
+  function rasioViewportStrict() {
+    const sw = window.screen.availWidth || window.screen.width || window.innerWidth;
+    const sh = window.screen.availHeight || window.screen.height || window.innerHeight;
+    const iw = window.innerWidth || 1;
+    const ih = window.innerHeight || 1;
+
+    let vvWidthRatio = 1;
+    let vvHeightRatio = 1;
+    let vvScale = 1;
+
+    if (window.visualViewport) {
+      vvWidthRatio = window.visualViewport.width / Math.max(1, iw);
+      vvHeightRatio = window.visualViewport.height / Math.max(1, ih);
+      vvScale = window.visualViewport.scale || 1;
+    }
+
+    return {
+      rasioLebar: iw / Math.max(1, sw),
+      rasioTinggi: ih / Math.max(1, sh),
+      vvWidthRatio,
+      vvHeightRatio,
+      vvScale
+    };
+  }
+
+  function splitScreenTerdeteksiStrict() {
+    const r = rasioViewportStrict();
+
+    // Tegas: split screen / layar mengecil langsung pelanggaran.
+    if (r.rasioLebar < 0.78) return true;
+    if (r.rasioTinggi < 0.58 && r.rasioLebar < 0.96) return true;
+
+    return false;
+  }
+
+  function popupTerdeteksiStrict() {
+    const r = rasioViewportStrict();
+
+    // Popup/floating window/AI overlay biasanya mengubah visualViewport/scale.
+    // Ini diberi peringatan sekali, bukan langsung kunci.
+    if (r.vvWidthRatio < 0.84) return true;
+    if (r.vvScale > 1.08) return true;
+
+    return false;
+  }
+
+  function paksaFullscreenAwal() {
+    try {
+      if (typeof masukFullscreen === "function") {
+        masukFullscreen();
+        return;
+      }
+    } catch (e) {}
+
+    try {
+      const el = document.documentElement;
+      if (el.requestFullscreen) el.requestFullscreen();
+      else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+    } catch (e) {}
+  }
+
+  function cekKeamananStrict(sumber = "periodik") {
+    if (!strictActive || !ujianAktifStrict()) return;
+
+    // Toleransi hanya saat awal masuk ujian agar fullscreen sempat aktif.
+    if (strictStartedAt && Date.now() - strictStartedAt < STRICT_START_GRACE) {
+      if (!fullscreenAktifStrict()) {
+        paksaFullscreenAwal();
+      }
+      return;
+    }
+
+    if (!fullscreenAktifStrict()) {
+      lockLangsung(
+        "keluar fullscreen",
+        "Peserta keluar dari mode fullscreen. Ujian wajib berada dalam fullscreen dan aktivitas ini langsung dianggap pelanggaran."
+      );
+      return;
+    }
+
+    if (splitScreenTerdeteksiStrict()) {
+      lockLangsung(
+        "split screen",
+        "Peserta menggunakan split screen/bagi layar atau ukuran layar ujian mengecil. Aktivitas ini langsung dianggap pelanggaran."
+      );
+      return;
+    }
+
+    if (popupTerdeteksiStrict()) {
+      const now = Date.now();
+      if (now - lastPopupAt < STRICT_POPUP_REPEAT_GAP) return;
+      lastPopupAt = now;
+
+      peringatanSekaliLaluKunci(
+        "popup",
+        "Popup, floating window, menu AI, atau jendela mengambang terdeteksi. Tutup sekarang dan tetap fokus pada ujian.",
+        "Popup/floating window/menu AI terdeteksi kembali setelah peringatan."
+      );
+    }
+  }
+
+  function pasangGridSwipeDetector() {
+    const guard = document.getElementById("iframe-grid-soft-guard");
+    if (!guard || guard.dataset.strictSwipeReady === "1") return;
+
+    guard.dataset.strictSwipeReady = "1";
+
+    // Capture phase agar tetap terbaca walaupun cell grid melakukan stopPropagation.
+    guard.addEventListener("touchstart", function (event) {
+      if (!ujianAktifStrict()) return;
+      const t = event.touches && event.touches[0];
+      if (!t) return;
+      gridStartX = t.clientX;
+      gridStartY = t.clientY;
+      gridStartAt = Date.now();
+    }, true);
+
+    guard.addEventListener("touchmove", function (event) {
+      if (!ujianAktifStrict()) return;
+      const t = event.touches && event.touches[0];
+      if (!t) return;
+
+      const dx = Math.abs(t.clientX - gridStartX);
+      const dy = Math.abs(t.clientY - gridStartY);
+      const durasi = Date.now() - gridStartAt;
+
+      if (durasi > 120 && dx > STRICT_SWIPE_THRESHOLD && dx > dy * 1.7) {
+        peringatanSekaliLaluKunci(
+          "swipe",
+          "Gerakan geser kiri/kanan terdeteksi. Saat ujian, gunakan scroll atas-bawah dan jangan mencari celah untuk menyalin soal.",
+          "Gerakan geser kiri/kanan terdeteksi kembali setelah peringatan."
+        );
+
+        gridStartX = t.clientX;
+        gridStartY = t.clientY;
+        gridStartAt = Date.now();
+      }
+    }, true);
+  }
+
+  function mulaiStrictFocus() {
+    strictStartedAt = Date.now();
+    strictActive = true;
+    popupWarningUsed = false;
+    swipeWarningUsed = false;
+    locking = false;
+
+    document.body.classList.add("strict-focus-active");
+
+    msgStrict(
+      "Mode fokus aktif. Keluar fullscreen, split screen, dan pindah tab akan langsung mengunci ujian.",
+      "warn",
+      5200
+    );
+
+    paksaFullscreenAwal();
+
+    setTimeout(() => cekKeamananStrict("awal 1"), 1500);
+    setTimeout(() => cekKeamananStrict("awal 2"), 3300);
+
+    pasangGridSwipeDetector();
+  }
+
+  window.cikpusStrictFocusMulai = mulaiStrictFocus;
+
+  // Pindah tab/browser/aplikasi: langsung pelanggaran.
+  document.addEventListener("visibilitychange", function () {
+    if (!ujianAktifStrict()) return;
+
+    if (document.hidden) {
+      lockLangsung(
+        "pindah tab/browser",
+        "Peserta meninggalkan tab/halaman ujian atau membuka aplikasi lain. Aktivitas ini langsung dianggap pelanggaran."
+      );
+    } else {
+      setTimeout(() => cekKeamananStrict("visibility kembali"), 300);
+    }
+  }, true);
+
+  // Keluar fullscreen: langsung pelanggaran.
+  ["fullscreenchange", "webkitfullscreenchange", "mozfullscreenchange", "MSFullscreenChange"].forEach(evt => {
+    document.addEventListener(evt, function () {
+      setTimeout(() => {
+        if (!ujianAktifStrict()) return;
+
+        if (!fullscreenAktifStrict()) {
+          // Abaikan hanya pada masa awal ketika sistem sedang mencoba masuk fullscreen.
+          if (strictStartedAt && Date.now() - strictStartedAt < STRICT_START_GRACE) {
+            paksaFullscreenAwal();
+            return;
+          }
+
+          lockLangsung(
+            "keluar fullscreen",
+            "Peserta keluar dari fullscreen. Aktivitas ini langsung dianggap pelanggaran."
+          );
+        } else {
+          cekKeamananStrict("fullscreen kembali");
+        }
+      }, 180);
+    }, true);
+  });
+
+  // Resize jelas untuk split screen: langsung pelanggaran.
+  // Popup/floating window: peringatan sekali.
+  window.addEventListener("resize", function () {
+    setTimeout(() => cekKeamananStrict("resize"), 420);
+  }, true);
+
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", function () {
+      setTimeout(() => cekKeamananStrict("visualViewport resize"), 420);
+    }, { passive: true });
+
+    window.visualViewport.addEventListener("scroll", function () {
+      setTimeout(() => cekKeamananStrict("visualViewport scroll"), 420);
+    }, { passive: true });
+  }
+
+  // Blur tidak langsung dikunci karena fokus ke iframe bisa menyebabkan blur.
+  // Namun jika blur disertai popup/viewport mencurigakan, tetap diproses.
+  window.addEventListener("blur", function () {
+    setTimeout(() => {
+      if (!ujianAktifStrict()) return;
+      if (document.hidden) {
+        lockLangsung(
+          "pindah tab/browser",
+          "Peserta meninggalkan halaman ujian. Aktivitas ini langsung dianggap pelanggaran."
+        );
+        return;
+      }
+      cekKeamananStrict("blur");
+    }, 750);
+  }, true);
+
+  window.addEventListener("focus", function () {
+    setTimeout(() => cekKeamananStrict("focus"), 350);
+  }, true);
+
+  setInterval(() => {
+    cekKeamananStrict("interval");
+    pasangGridSwipeDetector();
+  }, STRICT_CHECK_INTERVAL);
+
+  // Override mulaiUjian agar strict focus otomatis aktif setelah siswa mulai.
+  try {
+    const oldMulaiUjian = typeof mulaiUjian === "function" ? mulaiUjian : null;
+    if (oldMulaiUjian) {
+      window.mulaiUjian = function () {
+        oldMulaiUjian();
+        setTimeout(mulaiStrictFocus, 300);
       };
     }
   } catch (e) {}
