@@ -1,11 +1,3142 @@
-{
-  "name": "Cikpus CyberLock Kelas X",
-  "short_name": "CyberLock X",
-  "start_url": "./index.html",
-  "scope": "./",
-  "display": "fullscreen",
-  "orientation": "any",
-  "background_color": "#06101f",
-  "theme_color": "#06101f",
-  "description": "Sistem ujian anti curang kelas X berbasis Google Form dan Spreadsheet."
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Cikpus CyberLock</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#06101f">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="CyberLock X">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+	<link rel="icon" type="image/png" href="/Tes/favicon.png?v=2">
+	<link rel="shortcut icon" type="image/png" href="/Tes/favicon.png?v=2">
+	<link rel="apple-touch-icon" href="/Tes/favicon.png?v=2">
+	
+  <link rel="preconnect" href="https://docs.google.com">
+  <link rel="preconnect" href="https://accounts.google.com">
+  <link rel="dns-prefetch" href="https://docs.google.com">
+  <link rel="dns-prefetch" href="https://accounts.google.com">
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+     :root {
+      --zona-kanan: 55vw;
+      --zona-bawah-aman: clamp(100px, 22vh, 230px);
+      --topbar-height: clamp(50px, 7vh, 60px);
+      --font-topbar: clamp(7.5px, 1.95vw, 10.5px);
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      min-height: 100%;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #06101f;
+      color: #00ffaa;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+      overscroll-behavior: none;
+    }
+
+    body.exam-mode {
+      height: 100vh;
+      overflow: hidden;
+      background: #ffffff;
+    }
+
+    body.locked-mode #exam-area,
+    body.locked-mode #right-touch-guard,
+    body.locked-mode #camera-monitor,
+    body.locked-mode #watermark,
+    body.locked-mode #topbar,
+    body.locked-mode iframe {
+      pointer-events: none !important;
+    }
+
+    #start-screen {
+      width: 100%;
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 14px;
+      background:
+        radial-gradient(circle at top, rgba(0,255,170,.16), transparent 35%),
+        linear-gradient(135deg, #06101f, #0a1730 60%, #050815);
+    }
+
+    .panel {
+      width: 100%;
+      max-width: 540px;
+      margin: 12px 0 28px;
+      background: rgba(13, 22, 43, .96);
+      border: 2px solid #00ffaa;
+      border-radius: 18px;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 0 28px rgba(0,255,170,.24);
+    }
+
+    .main-title {
+      margin: 0;
+      font-size: clamp(20px, 5.5vw, 24px);
+      font-weight: 900;
+      letter-spacing: 1px;
+      color: #00ffaa;
+      text-shadow: 0 0 12px rgba(0,255,170,.45);
+    }
+
+    .anti-cheat-title {
+      margin: 6px 0 8px;
+      color: #ff3344;
+      font-size: clamp(14px, 4.2vw, 17px);
+      font-weight: 900;
+      text-transform: uppercase;
+      text-shadow: 0 0 12px rgba(255,51,68,.55);
+    }
+
+    .sub-title {
+      margin: 0 0 14px;
+      font-size: clamp(10px, 3vw, 12px);
+      font-weight: bold;
+      color: #00d2ff;
+      letter-spacing: .8px;
+    }
+
+    .alert-box,
+    .info-box {
+      margin: 12px 0;
+      padding: 12px;
+      border-radius: 12px;
+      color: white;
+      text-align: left;
+      font-size: clamp(12px, 3.4vw, 14px);
+      line-height: 1.5;
+    }
+
+    .alert-box {
+      border: 1px solid #ff3344;
+      background: rgba(255, 51, 68, .10);
+    }
+
+    .info-box {
+      border: 1px solid rgba(0, 210, 255, .55);
+      background: rgba(0, 210, 255, .08);
+      color: #dffaff;
+    }
+
+    .form-group {
+      text-align: left;
+      margin: 12px 0;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: bold;
+      color: #baffee;
+      margin-bottom: 6px;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 13px;
+      border: 1px solid rgba(0,255,170,.55);
+      border-radius: 10px;
+      background: #030815;
+      color: white;
+      font-size: 15px;
+      outline: none;
+    }
+
+    .status-text,
+    .small-note {
+      color: #d7fff5;
+      font-size: 12.5px;
+      line-height: 1.45;
+      margin: 10px 0;
+    }
+
+    .small-note {
+      color: #a8c6d6;
+    }
+
+    .btn-row {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    button,
+    .btn-link {
+      width: 100%;
+      border: none;
+      border-radius: 10px;
+      padding: 14px;
+      font-size: 14px;
+      font-weight: 800;
+      text-transform: uppercase;
+      text-decoration: none;
+      text-align: center;
+      cursor: pointer;
+      display: block;
+    }
+
+    button:disabled {
+      opacity: .45;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      color: #06101f;
+      background: #00ffaa;
+    }
+
+    .btn-link {
+      color: white;
+      background: #1463ff;
+    }
+
+    .btn-dark {
+      color: white;
+      background: #1f2a44;
+    }
+
+    .btn-danger {
+      color: white;
+      background: #ff3344;
+    }
+
+    .checklist {
+      text-align: left;
+      color: #dffaff;
+      font-size: 12.5px;
+      line-height: 1.5;
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 10px;
+      background: rgba(255,255,255,.04);
+    }
+
+    #exam-screen {
+      display: none;
+      width: 100%;
+      height: 100vh;
+      background: white;
+      position: relative;
+    }
+
+    #topbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: var(--topbar-height);
+      z-index: 900;
+      display: grid;
+      grid-template-columns: 25% 1fr 38%;
+      align-items: center;
+      gap: 5px;
+      padding: 0 6px;
+      background: #06101f;
+      color: #00ffaa;
+      border-bottom: 2px solid #00ffaa;
+      font-size: var(--font-topbar);
+      font-weight: 800;
+      line-height: 1.12;
+    }
+
+    #topbar .left,
+    #topbar .right {
+      min-width: 0;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    #topbar .left {
+      color: #00ffaa;
+      text-align: left;
+      font-size: clamp(7.5px, 1.9vw, 10px);
+    }
+
+    #topbar .center {
+      min-width: 0;
+      color: white;
+      text-align: center;
+      font-size: clamp(7.8px, 2vw, 10.8px);
+      font-weight: 800;
+      white-space: normal;
+      overflow: visible;
+      text-overflow: clip;
+    }
+
+    .date-main {
+      display: block;
+      color: #ffffff;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .time-main {
+      display: block;
+      color: #eaf2ff;
+      font-weight: 700;
+      margin-top: 1px;
+      white-space: nowrap;
+    }
+
+    #topbar .right {
+      display: grid;
+      grid-template-columns: auto auto auto;
+      align-items: center;
+      justify-content: end;
+      gap: clamp(3px, 1vw, 6px);
+      text-align: right;
+      font-size: clamp(7px, 1.85vw, 10px);
+    }
+
+    .topbar-status {
+      display: inline-block;
+      white-space: nowrap;
+    }
+
+    #camera-label {
+      color: #baffee;
+      font-size: clamp(7px, 1.8vw, 9.5px);
+      font-weight: 700;
+    }
+
+    .btn-finish {
+      display: none;
+      width: auto;
+      min-width: clamp(54px, 15vw, 78px);
+      padding: 6px 8px;
+      border-radius: 7px;
+      background: #00ffaa;
+      color: #06101f;
+      font-size: clamp(7.5px, 2vw, 10px);
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    #exam-area {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: var(--topbar-height);
+      bottom: 0;
+      background: white;
+      overflow: hidden;
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: white;
+      touch-action: pan-y;
+    }
+
+    #right-touch-guard {
+      position: fixed;
+      top: var(--topbar-height);
+      right: 0;
+      bottom: var(--zona-bawah-aman);
+      width: var(--zona-kanan);
+      z-index: 946;
+      background: rgba(255, 0, 0, 0.004);
+      pointer-events: auto;
+      touch-action: none;
+    }
+
+    #right-touch-guard::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 1px;
+      background: rgba(255, 0, 0, .12);
+    }
+
+    #camera-monitor {
+      position: fixed;
+      right: 10px;
+      bottom: 12px;
+      z-index: 950;
+      width: clamp(58px, 17vw, 82px);
+      height: clamp(78px, 23vw, 110px);
+      border: 2px solid #00ffaa;
+      border-radius: 12px;
+      background: black;
+      object-fit: cover;
+      transform: scaleX(-1);
+      pointer-events: none;
+    }
+
+    #watermark {
+      position: fixed;
+      inset: var(--topbar-height) 0 0 0;
+      z-index: 910;
+      pointer-events: none;
+      opacity: .04;
+      color: rgba(0,0,0,.75);
+      font-size: 18px;
+      font-weight: 900;
+      line-height: 3.2;
+      transform: rotate(-22deg);
+      white-space: pre-wrap;
+      text-align: center;
+    }
+
+    #zone-warning,
+    #copy-indicator {
+      display: none;
+      position: fixed;
+      top: calc(var(--topbar-height) + 8px);
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 981;
+      max-width: 94%;
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 900;
+      text-align: center;
+      box-shadow: 0 8px 28px rgba(0,0,0,.30);
+    }
+
+    #zone-warning {
+      background: #f59e0b;
+      color: #111827;
+    }
+
+    #copy-indicator {
+      background: #ff3344;
+      color: #fff;
+    }
+
+    #lock-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;
+      z-index: 2147483647;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      color: #ff3344;
+      background: #170205;
+      animation: redFlash .65s infinite alternate;
+      pointer-events: auto;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+    }
+
+    @keyframes redFlash {
+      from { background: #170205; box-shadow: inset 0 0 60px rgba(255,0,0,.2); }
+      to { background: #3b050b; box-shadow: inset 0 0 110px rgba(255,0,0,.65); }
+    }
+
+    .lock-panel {
+      width: 100%;
+      max-width: min(450px, 94vw);
+      padding: clamp(16px, 5vw, 24px);
+      border: 3px solid #ff3344;
+      border-radius: 18px;
+      background: rgba(20, 3, 5, .96);
+      text-align: center;
+      box-shadow: 0 0 38px rgba(255,51,68,.48);
+    }
+
+    .warning-logo {
+      width: clamp(74px, 22vw, 96px);
+      height: clamp(74px, 22vw, 96px);
+      margin: 0 auto 14px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle, #ff3344 0%, #9b0613 72%);
+      color: #fff;
+      font-size: clamp(40px, 12vw, 52px);
+      font-weight: 900;
+      box-shadow: 0 0 34px rgba(255, 51, 68, .85);
+    }
+
+    .lock-panel h2 {
+      margin: 0 0 12px;
+      font-size: 23px;
+      font-weight: 900;
+    }
+
+    .lock-panel p {
+      color: white;
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .input-secure {
+      width: 100%;
+      margin: 12px 0;
+      padding: 13px;
+      border: 1px solid #ff3344;
+      border-radius: 10px;
+      background: #000;
+      color: #ff3344;
+      font-size: 16px;
+      font-weight: 900;
+      text-align: center;
+      outline: none;
+    }
+
+    .error-title {
+      color: #ff3344;
+      font-size: 22px;
+      font-weight: 900;
+      margin-bottom: 12px;
+    }
+
+    .error-text {
+      color: white;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    /* RESPONSIF ZONA PENGAWASAN */
+    @media (max-width: 420px) {
+      :root {
+        --zona-kanan: 48vw;
+      }
+    }
+
+    @media (min-width: 700px) {
+      :root {
+        --zona-kanan: 50vw;
+      }
+    }
+
+
+    #bottom-safe-note {
+      position: fixed;
+      right: 6px;
+      bottom: 6px;
+      z-index: 940;
+      padding: 5px 7px;
+      border-radius: 8px;
+      background: rgba(6, 16, 31, .72);
+      color: #baffee;
+      font-size: clamp(7px, 1.8vw, 9px);
+      font-weight: 700;
+      pointer-events: none;
+      opacity: .82;
+    }
+
+    #iframe-stuck-panel {
+      display: none;
+      position: fixed;
+      left: 50%;
+      top: calc(var(--topbar-height) + 12px);
+      transform: translateX(-50%);
+      z-index: 990;
+      width: min(92vw, 430px);
+      padding: 10px;
+      border-radius: 12px;
+      background: rgba(6, 16, 31, .94);
+      border: 1px solid #00ffaa;
+      color: white;
+      text-align: center;
+      font-size: 12px;
+      line-height: 1.35;
+      box-shadow: 0 10px 26px rgba(0,0,0,.28);
+    }
+
+    #iframe-stuck-panel button {
+      margin-top: 8px;
+      padding: 9px 10px;
+      border-radius: 8px;
+      background: #00ffaa;
+      color: #06101f;
+      font-size: 11px;
+      font-weight: 900;
+    }
+
+
+    /* Popup peringatan aktivitas mencurigakan */
+    #warning-popup {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 2147483000;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      background: rgba(6,16,31,.48);
+      pointer-events: auto;
+      touch-action: none;
+    }
+    .warning-popup-card {
+      width: min(92vw, 430px);
+      border: 2px solid #f59e0b;
+      border-radius: 18px;
+      background: rgba(8,14,28,.97);
+      color: white;
+      padding: 18px;
+      text-align: center;
+      box-shadow: 0 0 34px rgba(245,158,11,.38);
+    }
+    @keyframes warningPulse {
+      0% { transform: scale(.98); }
+      50% { transform: scale(1.015); }
+      100% { transform: scale(1); }
+    }
+    .warning-popup-icon {
+      width: 62px;
+      height: 62px;
+      margin: 0 auto 10px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle, #fbbf24 0%, #d97706 75%);
+      color: #111827;
+      font-size: 38px;
+      font-weight: 900;
+      box-shadow: 0 0 28px rgba(251,191,36,.62);
+    }
+    .warning-popup-title {
+      margin: 4px 0 8px;
+      color: #fbbf24;
+      font-size: clamp(18px, 5vw, 22px);
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+    .warning-popup-message {
+      color: #fff7ed;
+      font-size: clamp(13px, 3.8vw, 15px);
+      line-height: 1.5;
+      margin: 8px 0 14px;
+    }
+    .warning-popup-note {
+      color: #ffd9a6;
+      font-size: clamp(12px, 3.4vw, 13px);
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+    .warning-popup-button {
+      touch-action: manipulation;
+      user-select: none;
+      -webkit-user-select: none;
+      width: 100%;
+      border: none;
+      border-radius: 11px;
+      padding: 12px;
+      background: #f59e0b;
+      color: #111827;
+      font-size: 14px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+    #network-status {
+      display: none;
+      position: fixed;
+      left: 50%;
+      bottom: calc(var(--zona-bawah-aman) + 8px);
+      transform: translateX(-50%);
+      z-index: 1000;
+      max-width: 94vw;
+      padding: 8px 12px;
+      border-radius: 12px;
+      background: rgba(239,68,68,.95);
+      color: white;
+      font-size: 12px;
+      font-weight: 900;
+      text-align: center;
+      box-shadow: 0 6px 22px rgba(0,0,0,.24);
+      pointer-events: none;
+    }
+    #right-touch-guard {
+      background:
+        repeating-linear-gradient(135deg, rgba(255,51,68,.020) 0px, rgba(255,51,68,.020) 8px, rgba(255,255,255,0) 8px, rgba(255,255,255,0) 18px),
+        rgba(255,51,68,.012) !important;
+      border-left: 1px solid rgba(255,51,68,.20);
+    }
+    #right-touch-guard::after {
+      content: "ZONA PENGAWASAN";
+      position: absolute;
+      right: 6px;
+      top: 42%;
+      transform: rotate(90deg);
+      transform-origin: right center;
+      color: rgba(255,51,68,.26);
+      font-size: clamp(8px, 2.1vw, 11px);
+      font-weight: 900;
+      letter-spacing: .8px;
+      pointer-events: none;
+      white-space: nowrap;
+      text-shadow: 0 0 4px rgba(255,255,255,.38);
+    }
+
+
+    /* Status level peringatan */
+    .warning-level-badge {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(245, 158, 11, .16);
+      border: 1px solid rgba(245, 158, 11, .7);
+      color: #fbbf24;
+      font-size: clamp(11px, 3vw, 13px);
+      font-weight: 900;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+    }
+
+    .warning-technical-note {
+      margin-top: 12px;
+      padding: 10px;
+      border-radius: 10px;
+      background: rgba(255,255,255,.06);
+      color: #cbd5e1;
+      font-size: clamp(11px, 3vw, 12px);
+      line-height: 1.45;
+      text-align: left;
+    }
+
+
+    /* OPTIMASI RINGAN: popup peringatan dibuat non-blocking agar iframe Google Form tidak terasa macet */
+    #warning-popup {
+      display: none;
+      position: fixed !important;
+      inset: auto !important;
+      top: calc(var(--topbar-height) + 10px) !important;
+      left: 50% !important;
+      transform: translateX(-50%) !important;
+      z-index: 2147483000 !important;
+      width: min(92vw, 430px) !important;
+      padding: 0 !important;
+      background: transparent !important;
+      backdrop-filter: none !important;
+      pointer-events: none !important;
+      touch-action: auto !important;
+    }
+
+    .warning-popup-card {
+      width: 100% !important;
+      border: 2px solid #f59e0b;
+      border-radius: 16px;
+      background: rgba(8, 14, 28, .96);
+      padding: 14px;
+      box-shadow: 0 8px 22px rgba(0,0,0,.26);
+      animation: none !important;
+      pointer-events: auto !important;
+    }
+
+    .warning-popup-icon {
+      width: 42px !important;
+      height: 42px !important;
+      font-size: 26px !important;
+      box-shadow: none !important;
+      margin-bottom: 6px !important;
+    }
+
+    .warning-popup-title {
+      font-size: clamp(15px, 4vw, 18px) !important;
+      margin: 2px 0 5px !important;
+    }
+
+    .warning-popup-message {
+      font-size: clamp(12px, 3.3vw, 14px) !important;
+      line-height: 1.42 !important;
+      margin: 6px 0 8px !important;
+    }
+
+    .warning-popup-note {
+      font-size: clamp(10.5px, 3vw, 12px) !important;
+      margin-bottom: 8px !important;
+    }
+
+    .warning-technical-note {
+      margin-top: 8px !important;
+      padding: 8px !important;
+      font-size: clamp(10px, 2.8vw, 11px) !important;
+      line-height: 1.35 !important;
+    }
+
+    .warning-popup-button {
+      padding: 10px !important;
+      font-size: 12px !important;
+      touch-action: manipulation !important;
+    }
+
+    body.camera-lite #camera-monitor {
+      display: none !important;
+    }
+
+    body.camera-lite #camera-label::after {
+      content: " Lite";
+      color: #baffee;
+      font-weight: 700;
+    }
+
+  
+/* ============================================================
+   UPDATE KEAMANAN LAPANGAN:
+   IFRAME HANYA BISA DIKERJAKAN SAAT FULLSCREEN
+   + DETEKSI POPUP / FLOATING WINDOW / SPLIT SCREEN
+   ============================================================ */
+
+#fullscreen-gate-overlay {
+  display: none;
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: var(--topbar-height);
+  bottom: 0;
+  z-index: 990;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(6, 16, 31, .82);
+  color: #fff;
+  text-align: center;
+  pointer-events: auto;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }
+
+.fullscreen-gate-card {
+  width: min(92vw, 460px);
+  border: 2px solid #f59e0b;
+  border-radius: 16px;
+  background: rgba(8, 14, 28, .97);
+  padding: 16px;
+  box-shadow: 0 10px 28px rgba(0,0,0,.32);
+}
+
+.fullscreen-gate-icon {
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 10px;
+  border-radius: 50%;
+  background: #f59e0b;
+  color: #111827;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  font-weight: 900;
+}
+
+.fullscreen-gate-title {
+  color: #fbbf24;
+  font-size: clamp(16px, 4.2vw, 20px);
+  font-weight: 900;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.fullscreen-gate-message {
+  color: #fff7ed;
+  font-size: clamp(12px, 3.5vw, 14px);
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+
+.fullscreen-gate-technical {
+  color: #cbd5e1;
+  background: rgba(255,255,255,.06);
+  border-radius: 10px;
+  padding: 9px;
+  font-size: clamp(10.5px, 3vw, 12px);
+  line-height: 1.45;
+  margin-bottom: 12px;
+  text-align: left;
+}
+
+.fullscreen-gate-actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.fullscreen-gate-actions button {
+  padding: 11px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+  touch-action: manipulation;
+}
+
+.btn-gate-primary {
+  background: #00ffaa;
+  color: #06101f;
+}
+
+.btn-gate-dark {
+  background: #1f2a44;
+  color: #fff;
+}
+
+body.iframe-security-blocked #ujian-frame {
+  pointer-events: none !important;
+}
+
+body.iframe-security-blocked #fullscreen-gate-overlay {
+  display: flex !important;
+}
+
+/* Saat tidak fullscreen atau layar dicurigai terbagi, zona pengawasan tetap aktif,
+   tetapi iframe dikunci oleh overlay agar siswa tidak bisa mengerjakan di luar fullscreen. */
+body.iframe-security-blocked #right-touch-guard {
+  pointer-events: none !important;
+}
+
+/* Pada mode landscape/layar kecil, overlay tetap ringkas */
+@media (orientation: landscape) and (max-height: 520px) {
+  .fullscreen-gate-card {
+    max-height: calc(100vh - var(--topbar-height) - 16px);
+    overflow: auto;
+    padding: 12px;
+  }
+
+  .fullscreen-gate-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 24px;
+    margin-bottom: 6px;
+  }
+
+  .fullscreen-gate-title {
+    font-size: 14px;
+    margin-bottom: 5px;
+  }
+
+  .fullscreen-gate-message,
+  .fullscreen-gate-technical {
+    font-size: 10.5px;
+    margin-bottom: 7px;
+  }
+}
+
+  </style>
+</head>
+
+<body>
+  <div id="start-screen">
+    <div class="panel" id="panel-konten">
+      <h1 class="main-title">CIKPUS CYBERLOCK</h1>
+      <div class="anti-cheat-title">Ujian Anti Curang !</div>
+      <div class="sub-title">KELAS X - GOOGLE FORM SECURE</div>
+
+       <div class="alert-box">
+        <b>PERINGATAN UJIAN:</b><br>
+        1. Gunakan 1 smartphone dan pastikan login email Google sebelum mulai.<br>
+        2. Isi semua petanyaan dengan benar, jujur dan tidak menyontek.<br>
+        3. Gunakan hanya bagian kiri layar untuk scroll dan menjawab soal.<br>
+        4. Soal hanya bisa dikerjakan saat layar penuh aktif. Jika keluar fullscreen, split screen, atau muncul jendela mengambang, Google Form akan dikunci sementara.<br>
+        5. Tombol Selesai akan muncul saat semua soal telah dikerjakan atau ujian berjalan 30 menit.<br>6. Untuk HP lama, gunakan Chrome/Edge terbaru, matikan hemat baterai, dan atur layar mati otomatis minimal 10–30 menit.
+      </div>
+
+      <div class="info-box">
+		<b>PERHATIAN:</b><br>
+		Sistem ini memantau kamu dari kamera, layar, tab/aplikasi dan gerakan jari yang dilakukan. Aktivitas mencurigakan akan diberi peringatan bertingkat: 1x muncul peringatan, 2x muncul peringatan disertai bunyi singkat, dan 3x aktivitas mencurigakan akan mengunci ujian otomatis. Kerjakan dengan jujur, karena hanya pengawas yang dapat membuka kunci Ujian.
+		</div>
+
+
+      <div class="info-box" id="compat-box">
+        <b>CEK PERANGKAT:</b><br>
+        Gunakan <b>Chrome/Edge terbaru</b>. Minimal disarankan Chrome/Edge <b>84+</b>, rekomendasi <b>100+</b>.
+        Hindari browser bawaan HP lama, UC Browser atau Opera Mini.
+      </div>
+
+      <div class="form-group">
+        <label for="peserta-input">Nama dan Kelas</label>
+        <input id="peserta-input" class="form-control" type="text" placeholder="Contoh: Ahmad - XII TKRO 1" autocomplete="off" />
+      </div>
+
+      <div class="status-text" id="status-text">Menghubungkan ke Google Spreadsheet...</div>
+
+      <div class="btn-row">
+        <a class="btn-link" href="https://accounts.google.com/" target="_blank" rel="noopener noreferrer">Login Email Google Dulu</a>
+        <button class="btn-dark" type="button" onclick="refreshDatabaseManual()">Muat Ulang Database</button>
+        <button class="btn-primary" id="btn-mulai" onclick="inisialisasiAplikasi()" disabled>Memuat Ujian...</button>
+      </div>
+
+      <div class="checklist" id="checklist-status">
+        Status: Database belum siap • Kamera opsional
+      </div>
+
+      <div class="small-note">
+        Mode terbaru: kamera bersifat opsional untuk iPhone/HP lama. Pengawasan utama tetap fullscreen, split screen, popup/floating window, zona pengawasan, dan peringatan bertingkat.
+      </div>
+    </div>
+  </div>
+
+  <div id="exam-screen">
+    <div id="topbar">
+      <div class="left" id="exam-code-label">MAPEL -</div>
+
+      <div class="center" id="clock-label">
+        <span class="date-main">Memuat tanggal...</span>
+        <span class="time-main">Memuat jam...</span>
+      </div>
+
+      <div class="right">
+        <span id="duration-label" class="topbar-status">Durasi 00:00</span>
+        <span id="offense-label" class="topbar-status">Pelanggaran 0x.</span>
+        <button id="btn-selesai-ujian" class="btn-finish" onclick="selesaikanUjian()" disabled>Selesai</button>
+        <span id="camera-label" class="topbar-status">Kamera Aktif</span>
+      </div>
+    </div>
+
+    <div id="zone-warning">PERINGATAN: Area kanan adalah zona pengawasan. Gunakan area kiri untuk mengerjakan.</div>
+    <div id="copy-indicator">Aktivitas terlarang terdeteksi</div>
+
+    <div id="exam-area">
+      <iframe
+        id="ujian-frame"
+        src="about:blank"
+        referrerpolicy="no-referrer"
+        sandbox="allow-scripts allow-forms allow-same-origin"
+        allow="camera; fullscreen"
+      ></iframe>
+    </div>
+
+    
+    <div id="fullscreen-gate-overlay">
+      <div class="fullscreen-gate-card">
+        <div class="fullscreen-gate-icon">!</div>
+        <div class="fullscreen-gate-title" id="fullscreen-gate-title">Tampilan Ujian Diamankan</div>
+        <div class="fullscreen-gate-message" id="fullscreen-gate-message">
+          Soal hanya bisa dikerjakan saat halaman ujian berada dalam mode layar penuh.
+        </div>
+        <div class="fullscreen-gate-technical" id="fullscreen-gate-technical">
+          Keterangan teknis: sistem memblokir iframe Google Form karena fullscreen tidak aktif, layar mengecil, popup mengambang, atau split screen terdeteksi.
+        </div>
+        <div class="fullscreen-gate-actions">
+          <button type="button" class="btn-gate-primary" onclick="cikpusPaksaFullscreenAman()">Aktifkan Fullscreen Kembali</button>
+          <button type="button" class="btn-gate-dark" onclick="reloadIframeSoalMacet()">Refresh Soal</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="right-touch-guard"></div>
+    <div id="bottom-safe-note">Area bawah aman untuk tombol Google Form</div>
+    <div id="iframe-stuck-panel">
+      <b>Google Form terasa macet?</b><br>
+      Tunggu sebentar. Jika soal tetap tidak muncul, tekan tombol di bawah ini.
+      <button type="button" onclick="reloadIframeSoalMacet()">Muat Ulang Soal</button>
+    </div>
+    <div id="watermark"></div>
+    <video id="camera-monitor" autoplay playsinline muted></video>
+  </div>
+
+
+  <div id="warning-popup">
+    <div class="warning-popup-card">
+      <div class="warning-popup-icon">!</div>
+      <div class="warning-popup-title">Peringatan Ujian</div>
+      <div class="warning-popup-message" id="warning-popup-message">
+        Kamu terdeteksi melakukan aktivitas mencurigakan.
+      </div>
+      <div class="warning-popup-note" id="warning-popup-note">
+        Jika aktivitas yang sama terulang, ujian akan dikunci otomatis.
+      </div>
+      <button class="warning-popup-button" type="button" onclick="tutupPopupPeringatan()">Saya Mengerti</button>
+    </div>
+  </div>
+
+  <div id="network-status">Koneksi terputus. Jangan refresh halaman. Tunggu jaringan kembali stabil.</div>
+
+  <div id="lock-overlay">
+    <div class="lock-panel">
+      <div class="warning-logo">!</div>
+      <h2>🚨 UJIAN DIKUNCI 🚨</h2>
+      <p id="lock-reason">Sistem mendeteksi aktivitas mencurigakan.</p>
+      <p style="color:#ffb3b3;font-weight:bold;">Panggil pengawas. Kunci hanya bisa dibuka dengan kode guru.</p>
+      <input type="password" id="token-input" class="input-secure" placeholder="KODE GURU" autocomplete="off" inputmode="text" />
+      <button class="btn-danger" onclick="bukaKunciUjian()">BUKA KUNCI UJIAN</button>
+    </div>
+  </div>
+
+  <script>
+    // ============================================================
+    // PENGATURAN UTAMA
+    // ============================================================
+    const SPREADSHEET_ID = "1QWP_Z2aQNhG0sX2_myJdj4VGqlcz9FR8T5zhwgNR4aw";
+    const SHEET_GID = "0";
+
+    const TOKEN_PENGAWAS = "PSAS";
+    const TOKEN_UJI_COBA = "JUJUR";
+
+    const BATAS_PERINGATAN_ZONA_KANAN = 1;
+    const MIN_DURASI_TOMBOL_SELESAI_MS = 30 * 60 * 1000; // cadangan 30 menit
+    const MIN_LOAD_FORM_SELESAI = 2; // Form 3 bagian: 1 Identitas, 2 Soal, 3 Pernyataan
+
+    const DATABASE_CACHE_TTL = 4 * 60 * 60 * 1000; // 4 jam agar mapel berikutnya lebih cepat // 4 jam agar mapel berikutnya lebih cepat
+    const DATABASE_FETCH_TIMEOUT = 4000; // batas tunggu database 4 detik // batas tunggu database 4 detik
+
+    // Kamera dibuat ringan agar lebih cocok untuk banyak tipe HP/browser.
+    const CAMERA_TIMEOUT = 8000;
+    const CAMERA_FAIL_LIMIT = 3;
+    const TAMPILKAN_PREVIEW_KAMERA = false; // false = kamera tetap aktif, tapi preview video tidak dirender agar HP lama lebih ringan
+
+    // PENGATURAN KAMERA:
+    // "required" = kamera wajib aktif, jika gagal ujian tidak bisa mulai.
+    // "optional" = kamera dicoba, jika gagal ujian tetap berjalan dengan catatan pengawas.
+    // "off"      = kamera dimatikan penuh, cocok untuk iPhone/HP lama yang bermasalah.
+    const CAMERA_MODE = "optional";
+    const BATAS_PERINGATAN_BERTINGKAT = 2; // 1x peringatan, 2x peringatan + bunyi, 3x terkunci untuk jenis yang sama
+    const BATAS_TOTAL_AKTIVITAS_MENCURIGAKAN = 3; // total aktivitas mencurigakan apa pun, 3x terkunci // 1x peringatan, 2x peringatan + bunyi, 3x terkunci
+
+    // ============================================================
+    // VARIABEL
+    // ============================================================
+    const urlParams = new URLSearchParams(window.location.search);
+
+    function ambilKodeUjianDariURL() {
+      const daftar = ["id", "ID", "Id", "iD", "kode", "KODE", "Kode"];
+      for (const nama of daftar) {
+        const nilai = urlParams.get(nama);
+        if (nilai && nilai.trim()) return nilai.trim().toLowerCase();
+      }
+      return "";
+    }
+
+    const kodeUjian = ambilKodeUjianDariURL();
+    const tabId = buatIdUnik();
+    const deviceId = ambilAtauBuatDeviceId();
+
+    const storagePrefix = `cyberlock_lite_${kodeUjian || "default"}`;
+    const KEY_ACTIVE = `${storagePrefix}_active_session`;
+    const KEY_BREACH = `${storagePrefix}_breach`;
+    const KEY_FINISHED = `${storagePrefix}_finished`;
+    const KEY_LOG = `${storagePrefix}_last_log`;
+    const KEY_CACHE_GLOBAL = `cyberlock_lite_database_cache_${SPREADSHEET_ID}_${SHEET_GID}`;
+    const KEY_TOKEN_UJI_COBA_USED = `${storagePrefix}_token_uji_coba_used`;
+    const KEY_NETWORK_GRACE = `${storagePrefix}_network_grace`;
+
+    let peserta = "";
+    let examAktif = false;
+    let statusTerkunci = false;
+    let linkGoogleForm = "";
+    let namaMapel = "";
+    let lokalStream = null;
+
+    let heartbeatInterval = null;
+    let cameraCheckInterval = null;
+    let screenCheckInterval = null;
+    let clockInterval = null;
+    let durationInterval = null;
+    let lockFullscreenInterval = null;
+    let examStartedAt = 0;
+    let abaikanCekLayarSampai = 0;
+
+    let channel = null;
+    let sistemSedangUnlock = false;
+    let jumlahPelanggaran = 0;
+    let ukuranAwal = null;
+    let fokusHilangTimer = null;
+    let longPressTimer = null;
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let databaseSiap = false;
+
+    let guardTouchStartX = 0;
+    let guardTouchStartY = 0;
+    let guardTouchStartTime = 0;
+    let guardLongPressTimer = null;
+    let zonaKananSudahAktif = false;
+    let jumlahSentuhanZonaKanan = 0;
+    let guardGestureSudahDiproses = false;
+    let tombolSelesaiAktif = false;
+    let formLoadCount = 0;
+    let audioContextPeringatan = null;
+    let audioSudahDiaktifkan = false;
+    let jaringanTerputus = false;
+    let waktuKoneksiPutus = 0;
+    let jumlahPeringatanPopup = 0;
+    let daftarPeringatanAktivitas = {};
+    let totalAktivitasMencurigakan = 0;
+    let popupToleransiTimer = null;
+    let jumlahGagalKamera = 0;
+    let iframeLoadTimer = null;
+    let iframeReloadManual = false;
+
+    // ============================================================
+    // LOAD AWAL
+    // ============================================================
+    window.addEventListener("load", async () => {
+      mulaiJamTanggal();
+      cekDukunganBrowser();
+      siapkanKomunikasiAntarTab();
+      updateChecklist();
+
+      if (!kodeUjian) {
+        tampilkanError("LINK SALAH", "Tambahkan kode ujian di URL. Contoh: ?id=INFO atau ?ID=INFO");
+        return;
+      }
+
+      document.getElementById("exam-code-label").innerText = `MAPEL ${kodeUjian.toUpperCase()}`;
+
+      if (localStorage.getItem(KEY_FINISHED) === "true") {
+        tampilkanUjianSudahSelesai();
+        return;
+      }
+
+      if (localStorage.getItem(KEY_BREACH) === "true") {
+        if (adaToleransiJaringanAktif()) {
+          localStorage.removeItem(KEY_BREACH);
+          hapusToleransiJaringan();
+          ubahStatus("Halaman dipulihkan setelah gangguan jaringan. Silakan lanjutkan ujian.");
+        } else {
+          kunciUjian("Sesi sebelumnya sudah terkunci karena pelanggaran.");
+          return;
+        }
+      }
+
+      const sesiAktif = bacaSesiAktif();
+      if (sesiAktif && sesiAktif.tabId !== tabId && sesiMasihHidup(sesiAktif)) {
+        tampilkanError("TAB GANDA TERDETEKSI", "Ujian sudah aktif di tab lain. Tutup tab ini dan kembali ke tab pertama.");
+        localStorage.setItem(KEY_BREACH, "true");
+        return;
+      }
+
+      await loadDatabaseUjian();
+    });
+
+    // ============================================================
+    // DATABASE SPREADSHEET
+    // ============================================================
+    async function loadDatabaseUjian() {
+      resetStatusDatabase();
+
+      const cache = ambilCacheDatabase();
+      if (cache) {
+        const dbCache = buatDatabaseDariCSV(cache.csvText);
+        const dataCache = dbCache.get(kodeUjian);
+
+        if (dataCache && dataCache.link) {
+          setDataUjian(dataCache, "cache");
+          aktifkanTombolMulai(`Ujian : ${namaMapel} Siap. Data cache digunakan agar lebih cepat.`);
+          fetchDatabaseTerbaru(false);
+          return;
+        }
+      }
+
+      ubahStatus("Menghubungkan ke Google Spreadsheet...");
+      await fetchDatabaseTerbaru(true);
+    }
+
+    async function refreshDatabaseManual() {
+      sessionStorage.removeItem(KEY_CACHE_GLOBAL);
+      localStorage.removeItem(KEY_CACHE_GLOBAL);
+      ubahStatus("Memuat ulang Google Spreadsheet...");
+      await fetchDatabaseTerbaru(true);
+    }
+
+    async function fetchDatabaseTerbaru(tampilkanErrorJikaGagal = true) {
+      try {
+        const v = Date.now();
+        const urls = [
+          `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/pub?gid=${SHEET_GID}&single=true&output=csv&v=${v}`,
+          `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/pub?output=csv&gid=${SHEET_GID}&v=${v}`,
+          `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&gid=${SHEET_GID}&v=${v}`
+        ];
+
+        const csvText = await ambilCSVTercepat(urls);
+        simpanCacheDatabase(csvText);
+
+        const database = buatDatabaseDariCSV(csvText);
+        const dataUjian = database.get(kodeUjian);
+
+        if (!dataUjian || !dataUjian.link) {
+          if (tampilkanErrorJikaGagal) {
+            tampilkanError("KODE TIDAK DITEMUKAN", `Kode "${kodeUjian.toUpperCase()}" tidak ada di Spreadsheet.`);
+          }
+          return;
+        }
+
+        setDataUjian(dataUjian, "spreadsheet");
+        aktifkanTombolMulai(`Ujian : ${namaMapel} Siap. Silakan login email Google, lalu klik Mulai Ujian.`);
+      } catch (error) {
+        const cacheLama = ambilCacheDatabase(true);
+
+        if (cacheLama) {
+          const dbCache = buatDatabaseDariCSV(cacheLama.csvText);
+          const dataCache = dbCache.get(kodeUjian);
+
+          if (dataCache && dataCache.link) {
+            setDataUjian(dataCache, "cache lama");
+            aktifkanTombolMulai(`Ujian : ${namaMapel} Siap. Memakai data terakhir karena Spreadsheet lambat.`);
+            return;
+          }
+        }
+
+        if (tampilkanErrorJikaGagal) {
+          tampilkanError("DATABASE BELUM TERSAMBUNG", "Pastikan Spreadsheet sudah Publish to Web dan format kolom A-B-C benar.");
+        }
+      }
+    }
+
+    function ambilCSVTercepat(urls) {
+      return new Promise((resolve, reject) => {
+        let selesai = false;
+        let gagal = 0;
+        const controllers = [];
+
+        const timeout = setTimeout(() => {
+          if (!selesai) {
+            selesai = true;
+            controllers.forEach(c => c.abort());
+            reject(new Error("Timeout database."));
+          }
+        }, DATABASE_FETCH_TIMEOUT);
+
+        urls.forEach(url => {
+          const controller = new AbortController();
+          controllers.push(controller);
+
+          fetch(url, { method: "GET", cache: "no-store", signal: controller.signal })
+            .then(res => {
+              if (!res.ok) throw new Error("Response tidak OK.");
+              return res.text();
+            })
+            .then(text => {
+              if (selesai) return;
+
+              const isi = String(text || "").trim();
+              if (!isi || !isi.includes(",")) throw new Error("CSV tidak valid.");
+
+              const db = buatDatabaseDariCSV(isi);
+              if (!db.size) throw new Error("CSV kosong.");
+
+              selesai = true;
+              clearTimeout(timeout);
+              controllers.forEach(c => c.abort());
+              resolve(isi);
+            })
+            .catch(() => {
+              gagal++;
+              if (!selesai && gagal >= urls.length) {
+                selesai = true;
+                clearTimeout(timeout);
+                reject(new Error("Semua jalur database gagal."));
+              }
+            });
+        });
+      });
+    }
+
+    function resetStatusDatabase() {
+      databaseSiap = false;
+      linkGoogleForm = "";
+      namaMapel = "";
+
+      const btn = document.getElementById("btn-mulai");
+      if (btn) {
+        btn.disabled = true;
+        btn.innerText = "Memuat Ujian...";
+      }
+
+      updateChecklist();
+    }
+
+    function setDataUjian(data, sumber) {
+      namaMapel = data.namaMapel || kodeUjian.toUpperCase();
+      linkGoogleForm = ubahKeEmbedGoogleForm(data.link);
+      databaseSiap = true;
+      tampilkanNamaMapel();
+      console.log("Data ujian dari:", sumber);
+    }
+
+    function aktifkanTombolMulai(pesan) {
+      const btn = document.getElementById("btn-mulai");
+      btn.disabled = false;
+      btn.innerText = "Mulai Ujian Sekarang";
+      ubahStatus(pesan);
+      updateChecklist();
+    }
+
+    // ============================================================
+    // MULAI UJIAN
+    // ============================================================
+    async function inisialisasiAplikasi() {
+      peserta = document.getElementById("peserta-input").value.trim();
+
+      if (!peserta) {
+        alert("Isi nama dan kelas terlebih dahulu.");
+        return;
+      }
+
+      if (!databaseSiap || !linkGoogleForm) {
+        alert("Database ujian belum siap. Klik Muat Ulang Database atau tunggu beberapa saat.");
+        return;
+      }
+
+      const sesiAktif = bacaSesiAktif();
+      if (sesiAktif && sesiAktif.tabId !== tabId && sesiMasihHidup(sesiAktif)) {
+        localStorage.setItem(KEY_BREACH, "true");
+        kunciUjian("Tab ganda terdeteksi. Ujian hanya boleh dibuka pada satu tab.");
+        return;
+      }
+
+      if (CAMERA_MODE === "off") {
+        aktifkanModeTanpaKamera("Kamera dimatikan melalui pengaturan sistem.");
+        mulaiUjian();
+        return;
+      }
+
+      if (CAMERA_MODE === "required") {
+        try {
+          await mintaIzinKamera();
+          mulaiUjian();
+        } catch (error) {
+          alert("Kamera belum bisa aktif. Gunakan Chrome/Edge terbaru, izinkan kamera, tutup aplikasi kamera lain, lalu coba lagi.");
+        }
+        return;
+      }
+
+      // CAMERA_MODE = optional
+      // Kamera dicoba, tetapi jika iPhone/HP lama/cookies/izin kamera bermasalah,
+      // siswa tetap bisa masuk ujian. Pengawasan utama tetap fullscreen, split screen,
+      // popup/floating window, zona pengawasan, dan peringatan bertingkat.
+      try {
+        await mintaIzinKamera();
+      } catch (error) {
+        aktifkanModeTanpaKamera("Kamera gagal aktif pada mode optional: " + (error && error.message ? error.message : "Tidak diketahui"));
+      }
+
+      mulaiUjian();
+    }
+
+    function mulaiUjian() {
+      examAktif = true;
+      statusTerkunci = false;
+      jumlahPelanggaran = 0;
+      jumlahSentuhanZonaKanan = 0;
+      jumlahPeringatanPopup = 0;
+      jumlahGagalKamera = 0;
+      tombolSelesaiAktif = false;
+      formLoadCount = 0;
+      examStartedAt = Date.now();
+
+      document.getElementById("offense-label").innerText = "Pelanggaran 0x.";
+      document.getElementById("offense-label").style.display = "inline-block";
+      document.getElementById("btn-selesai-ujian").style.display = "none";
+      document.getElementById("btn-selesai-ujian").disabled = true;
+
+      document.body.classList.add("exam-mode");
+      document.getElementById("start-screen").style.display = "none";
+      document.getElementById("exam-screen").style.display = "block";
+
+      simpanSesiAktif();
+      mulaiHeartbeat();
+      if (CAMERA_MODE === "required" || lokalStream) {
+        mulaiCekKamera();
+      } else {
+        aktifkanModeTanpaKamera("Ujian dimulai tanpa kamera.");
+      }
+      mulaiCekLayar();
+      mulaiDurasiUjian();
+      aktifkanAudioPeringatan();
+      mulaiPantauJaringan();
+      aktifkanWakeLockRingan();
+      aktifkanAudioPeringatan();
+      mulaiPantauJaringan();
+      aktifkanZonaKananPengawas();
+      perbaruiWatermark();
+
+      const iframe = document.getElementById("ujian-frame");
+
+      iframe.onload = function() {
+        sembunyikanPanelIframeMacet();
+
+        if (!examAktif || statusTerkunci) return;
+
+        if (iframeReloadManual) {
+          iframeReloadManual = false;
+          return;
+        }
+
+        formLoadCount++;
+
+        // Google Form 3 bagian:
+        // load ke-1 = bagian identitas
+        // load ke-2 = bagian soal
+        // load ke-3 = bagian pernyataan / bagian akhir
+        cekTombolSelesaiTertunda();
+      };
+
+      mulaiPantauIframeMacet();
+      iframe.src = linkGoogleForm;
+
+      masukFullscreen();
+
+      setTimeout(simpanUkuranAwalLayar, 1300);
+    }
+
+    function masukFullscreen() {
+      aktifkanToleransiPerubahanLayar(2500);
+
+      const elem = document.documentElement;
+
+      if (elem.requestFullscreen) {
+        elem.requestFullscreen()
+          .then(() => {
+            aktifkanToleransiPerubahanLayar(2500);
+            setTimeout(simpanUkuranAwalLayar, 1200);
+          })
+          .catch(() => {});
+      } else if (elem.webkitRequestFullscreen) {
+        elem.webkitRequestFullscreen();
+        aktifkanToleransiPerubahanLayar(2500);
+        setTimeout(simpanUkuranAwalLayar, 1200);
+      }
+    }
+
+    function aktifkanToleransiPerubahanLayar(ms = 2500) {
+      abaikanCekLayarSampai = Date.now() + ms;
+    }
+
+
+    function aktifkanModeTanpaKamera(pesan = "Kamera tidak aktif. Ujian berjalan dalam mode tanpa kamera.") {
+      lokalStream = null;
+      jumlahGagalKamera = 0;
+
+      if (cameraCheckInterval) {
+        clearInterval(cameraCheckInterval);
+        cameraCheckInterval = null;
+      }
+
+      const label = document.getElementById("camera-label");
+      if (label) label.innerText = CAMERA_MODE === "off" ? "Kamera Nonaktif" : "Kamera Opsional";
+
+      document.body.classList.add("camera-lite");
+      tulisLog(pesan);
+      updateChecklist();
+    }
+
+    // ============================================================
+    // KAMERA
+    // ============================================================
+    function mintaIzinKamera() {
+      return new Promise(async (resolve, reject) => {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          reject(new Error("Browser tidak mendukung kamera. Gunakan Chrome/Edge terbaru."));
+          return;
+        }
+
+        const opsiKamera = [
+          {
+            video: {
+              facingMode: "user",
+              width: { ideal: 160, max: 240 },
+              height: { ideal: 120, max: 180 },
+              frameRate: { ideal: 5, max: 8 }
+            },
+            audio: false
+          },
+          {
+            video: {
+              width: { ideal: 160, max: 240 },
+              height: { ideal: 120, max: 180 },
+              frameRate: { ideal: 5, max: 8 }
+            },
+            audio: false
+          },
+          {
+            video: true,
+            audio: false
+          }
+        ];
+
+        let errorTerakhir = null;
+
+        for (const opsi of opsiKamera) {
+          try {
+            const stream = await getUserMediaDenganTimeout(opsi, CAMERA_TIMEOUT);
+            lokalStream = stream;
+            jumlahGagalKamera = 0;
+
+            const video = document.getElementById("camera-monitor");
+
+            if (TAMPILKAN_PREVIEW_KAMERA && video) {
+              video.srcObject = stream;
+              try { await video.play(); } catch (e) {}
+              document.body.classList.remove("camera-lite");
+            } else {
+              if (video) {
+                video.pause();
+                video.srcObject = null;
+              }
+              document.body.classList.add("camera-lite");
+            }
+
+            document.getElementById("camera-label").innerText = "Kamera Aktif";
+            updateChecklist();
+            resolve(stream);
+            return;
+          } catch (error) {
+            errorTerakhir = error;
+          }
+        }
+
+        reject(errorTerakhir || new Error("Kamera belum bisa diaktifkan."));
+      });
+    }
+
+    function getUserMediaDenganTimeout(constraints, timeoutMs) {
+      return new Promise((resolve, reject) => {
+        let selesai = false;
+
+        const timer = setTimeout(() => {
+          if (selesai) return;
+          selesai = true;
+          reject(new Error("Timeout kamera."));
+        }, timeoutMs);
+
+        navigator.mediaDevices.getUserMedia(constraints)
+          .then(stream => {
+            if (selesai) {
+              stream.getTracks().forEach(track => track.stop());
+              return;
+            }
+
+            selesai = true;
+            clearTimeout(timer);
+            resolve(stream);
+          })
+          .catch(error => {
+            if (selesai) return;
+            selesai = true;
+            clearTimeout(timer);
+            reject(error);
+          });
+      });
+    }
+
+    function mulaiCekKamera() {
+      if (cameraCheckInterval) clearInterval(cameraCheckInterval);
+
+      cameraCheckInterval = setInterval(() => {
+        if (!examAktif || statusTerkunci) return;
+
+        let kameraBermasalah = false;
+
+        if (!lokalStream) {
+          kameraBermasalah = true;
+        } else {
+          const tracks = lokalStream.getVideoTracks();
+          kameraBermasalah = !tracks.length || tracks[0].readyState !== "live";
+        }
+
+        if (kameraBermasalah) {
+          jumlahGagalKamera++;
+
+          if (CAMERA_MODE !== "required") {
+            aktifkanModeTanpaKamera("Kamera terputus pada mode optional. Ujian dilanjutkan tanpa kamera.");
+            return;
+          }
+
+          document.getElementById("camera-label").innerText = `Kamera ${jumlahGagalKamera}/${CAMERA_FAIL_LIMIT}`;
+
+          if (jumlahGagalKamera >= CAMERA_FAIL_LIMIT) {
+            beriPeringatanAtauKunci(
+              "kamera",
+              "Kamera tidak terbaca stabil. Pastikan izin kamera aktif dan jangan menutup kamera. Jika terulang, ujian akan dikunci.",
+              "Kamera tidak aktif atau terputus beberapa kali saat ujian berlangsung.",
+              1
+            );
+          }
+
+          return;
+        }
+
+        jumlahGagalKamera = 0;
+        resetPeringatanAktivitas("kamera");
+        document.getElementById("camera-label").innerText = "Kamera Aktif";
+      }, 10000);
+    }
+
+    // ============================================================
+    // SELESAI UJIAN
+    // ============================================================
+    function cekTombolSelesaiTertunda() {
+      if (!examAktif || statusTerkunci || tombolSelesaiAktif) return;
+
+      const durasiBerjalan = Date.now() - examStartedAt;
+
+      // Tombol Selesai muncul jika Google Form sudah masuk bagian ke-3,
+      // atau cadangan waktu 30 menit jika load iframe tidak terbaca di sebagian HP.
+      const sudahMasukBagianAkhir = formLoadCount >= MIN_LOAD_FORM_SELESAI;
+      const durasiCadanganCukup = durasiBerjalan >= MIN_DURASI_TOMBOL_SELESAI_MS;
+
+      if (sudahMasukBagianAkhir || durasiCadanganCukup) {
+        aktifkanTombolSelesai();
+      }
+    }
+
+    function aktifkanTombolSelesai() {
+      const btnSelesai = document.getElementById("btn-selesai-ujian");
+      const offenseLabel = document.getElementById("offense-label");
+
+      tombolSelesaiAktif = true;
+
+      if (offenseLabel) {
+        offenseLabel.style.display = "none";
+      }
+
+      btnSelesai.style.display = "inline-block";
+      btnSelesai.disabled = false;
+      btnSelesai.innerText = "Selesai";
+    }
+
+    function selesaikanUjian() {
+      if (!tombolSelesaiAktif) {
+        alert("Tombol Selesai belum aktif. Tombol akan muncul saat masuk bagian ke-3 Google Form atau setelah cadangan waktu 30 menit.");
+        return;
+      }
+
+      const durasi = formatDurasi(Date.now() - examStartedAt);
+      const yakin = confirm(
+        `Pastikan jawaban sudah dikirim di Google Form.\n\nDurasi pengerjaan: ${durasi}.\n\nJika klik OK, ujian dianggap SELESAI dan tidak bisa dibuka ulang di perangkat/browser ini.`
+      );
+
+      if (!yakin) return;
+
+      localStorage.setItem(KEY_FINISHED, "true");
+      akhiriSesiUjian();
+    }
+
+    function akhiriSesiUjian() {
+      const durasiFinal = formatDurasi(Date.now() - examStartedAt);
+
+      lepaskanWakeLockRingan();
+      sistemSedangUnlock = true;
+      examAktif = false;
+      statusTerkunci = false;
+
+      localStorage.removeItem(KEY_BREACH);
+      localStorage.removeItem(KEY_ACTIVE);
+
+      if (heartbeatInterval) clearInterval(heartbeatInterval);
+      if (cameraCheckInterval) clearInterval(cameraCheckInterval);
+      if (screenCheckInterval) clearInterval(screenCheckInterval);
+      if (durationInterval) clearInterval(durationInterval);
+      if (lockFullscreenInterval) clearInterval(lockFullscreenInterval);
+      if (fokusHilangTimer) clearTimeout(fokusHilangTimer);
+      if (longPressTimer) clearTimeout(longPressTimer);
+      if (guardLongPressTimer) clearTimeout(guardLongPressTimer);
+
+      if (lokalStream) {
+        lokalStream.getTracks().forEach(track => track.stop());
+        lokalStream = null;
+      }
+
+      sembunyikanPanelIframeMacet();
+
+      const iframe = document.getElementById("ujian-frame");
+      iframe.onload = null;
+      iframe.src = "about:blank";
+
+      document.body.classList.remove("exam-mode", "locked-mode", "camera-lite");
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+      document.getElementById("exam-screen").style.display = "none";
+      document.getElementById("start-screen").style.display = "flex";
+      document.getElementById("panel-konten").innerHTML = `
+        <h1 class="main-title">UJIAN SELESAI</h1>
+        <div class="sub-title">SMKN 1 CIKARANG PUSAT</div>
+        <div class="info-box" style="text-align:center;">
+          Ujian sudah ditutup pada perangkat ini.<br><br>
+          Pastikan jawaban sudah dikirim di Google Form.<br><br>
+          <b>Durasi pengerjaan: ${durasiFinal}</b>
+        </div>
+      `;
+
+      if (document.fullscreenElement && document.exitFullscreen) {
+        document.exitFullscreen().catch(() => {});
+      }
+
+      sistemSedangUnlock = false;
+    }
+
+    // ============================================================
+    // DURASI & JAM
+    // ============================================================
+    function mulaiDurasiUjian() {
+      if (durationInterval) clearInterval(durationInterval);
+      updateDurasiUjian();
+      durationInterval = setInterval(updateDurasiUjian, 1000);
+    }
+
+    function updateDurasiUjian() {
+      const label = document.getElementById("duration-label");
+      if (!label || !examStartedAt) return;
+
+      label.innerText = `Durasi ${formatDurasi(Date.now() - examStartedAt)}`;
+      cekTombolSelesaiTertunda();
+    }
+
+    function formatDurasi(ms) {
+      const totalDetik = Math.max(0, Math.floor(ms / 1000));
+      const jam = Math.floor(totalDetik / 3600);
+      const menit = Math.floor((totalDetik % 3600) / 60);
+      const detik = totalDetik % 60;
+      const mm = String(menit).padStart(2, "0");
+      const ss = String(detik).padStart(2, "0");
+      if (jam > 0) return `${jam}:${mm}:${ss}`;
+      return `${mm}:${ss}`;
+    }
+
+    function mulaiJamTanggal() {
+      if (clockInterval) clearInterval(clockInterval);
+
+      const namaHari = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+      const namaBulan = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+
+      const updateJam = () => {
+        const now = new Date();
+
+        const parts = new Intl.DateTimeFormat("id-ID", {
+          timeZone: "Asia/Jakarta",
+          year: "numeric",
+          month: "numeric",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false
+        }).formatToParts(now);
+
+        const data = {};
+        parts.forEach(part => { data[part.type] = part.value; });
+
+        const tanggalObj = new Date(Number(data.year), Number(data.month) - 1, Number(data.day));
+        const hari = namaHari[tanggalObj.getDay()];
+        const tanggal = String(Number(data.day)).padStart(2, "0");
+        const bulan = namaBulan[Number(data.month) - 1];
+        const tahun = data.year;
+        const jam = String(data.hour).padStart(2, "0");
+        const menit = String(data.minute).padStart(2, "0");
+
+        const label = document.getElementById("clock-label");
+        if (label) {
+          label.innerHTML = `
+            <span class="date-main">${hari}, ${tanggal} ${bulan} ${tahun}</span>
+            <span class="time-main">${jam}:${menit} WIB</span>
+          `;
+        }
+      };
+
+      updateJam();
+      clockInterval = setInterval(updateJam, 1000);
+    }
+
+    // ============================================================
+    // ZONA KANAN
+    // ============================================================
+    function aktifkanZonaKananPengawas() {
+      const guard = document.getElementById("right-touch-guard");
+      if (!guard || zonaKananSudahAktif) return;
+
+      zonaKananSudahAktif = true;
+
+      guard.addEventListener("touchstart", function(event) {
+        if (!examAktif || statusTerkunci) return;
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        const touch = event.touches[0];
+        guardTouchStartX = touch.clientX;
+        guardTouchStartY = touch.clientY;
+        guardTouchStartTime = Date.now();
+        guardGestureSudahDiproses = false;
+
+        clearTimeout(guardLongPressTimer);
+
+        guardLongPressTimer = setTimeout(() => {
+          if (!examAktif || statusTerkunci || guardGestureSudahDiproses) return;
+          guardGestureSudahDiproses = true;
+          prosesZonaKananDenganToleransi("Tekan lama di zona kanan terdeteksi.");
+        }, 2300);
+      }, { passive: false });
+
+      guard.addEventListener("touchmove", function(event) {
+        if (!examAktif || statusTerkunci) return;
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        const touch = event.touches[0];
+        const geserX = Math.abs(touch.clientX - guardTouchStartX);
+        const geserY = Math.abs(touch.clientY - guardTouchStartY);
+
+        if (guardLongPressTimer) {
+          clearTimeout(guardLongPressTimer);
+          guardLongPressTimer = null;
+        }
+
+        if (!guardGestureSudahDiproses && (geserX > 30 || geserY > 30)) {
+          guardGestureSudahDiproses = true;
+          prosesZonaKananDenganToleransi("Gerakan di zona kanan terdeteksi.");
+        }
+      }, { passive: false });
+
+      guard.addEventListener("touchend", function(event) {
+        if (!examAktif || statusTerkunci) return;
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        if (guardLongPressTimer) {
+          clearTimeout(guardLongPressTimer);
+          guardLongPressTimer = null;
+        }
+
+        const lamaSentuh = Date.now() - guardTouchStartTime;
+        if (!guardGestureSudahDiproses && lamaSentuh >= 180) {
+          guardGestureSudahDiproses = true;
+          prosesZonaKananDenganToleransi("Sentuhan di zona kanan terdeteksi.");
+        }
+      }, { passive: false });
+    }
+
+    function prosesZonaKananDenganToleransi(alasan) {
+      if (!examAktif || statusTerkunci) return;
+
+      beriPeringatanAtauKunci(
+        "zona kanan",
+        "PERINGATAN ZONA: Setengah kanan layar adalah zona pengawasan. Gunakan area kiri untuk scroll dan menjawab soal. Bagian bawah tetap aman untuk tombol Google Form.",
+        `${alasan} Zona pengawasan kanan disentuh kembali setelah peringatan.`,
+        1
+      );
+    }
+
+    function tampilPeringatanZonaKanan(teks) {
+      const warning = document.getElementById("zone-warning");
+      warning.innerText = teks;
+      warning.style.display = "block";
+      setTimeout(() => { warning.style.display = "none"; }, 4500);
+    }
+
+
+    // ============================================================
+    // GOOGLE FORM / IFRAME MACET
+    // ============================================================
+    function mulaiPantauIframeMacet() {
+      sembunyikanPanelIframeMacet();
+
+      if (iframeLoadTimer) clearTimeout(iframeLoadTimer);
+
+      iframeLoadTimer = setTimeout(() => {
+        if (!examAktif || statusTerkunci) return;
+        tampilkanPanelIframeMacet();
+      }, 15000);
+    }
+
+    function tampilkanPanelIframeMacet() {
+      const panel = document.getElementById("iframe-stuck-panel");
+      if (panel) panel.style.display = "block";
+    }
+
+    function sembunyikanPanelIframeMacet() {
+      if (iframeLoadTimer) {
+        clearTimeout(iframeLoadTimer);
+        iframeLoadTimer = null;
+      }
+
+      const panel = document.getElementById("iframe-stuck-panel");
+      if (panel) panel.style.display = "none";
+    }
+
+    function reloadIframeSoalMacet() {
+      if (!examAktif || statusTerkunci) return;
+
+      const yakin = confirm("Muat ulang Google Form? Gunakan hanya jika soal benar-benar macet. Jawaban yang belum tersimpan di Google Form bisa hilang.");
+
+      if (!yakin) return;
+
+      const iframe = document.getElementById("ujian-frame");
+      iframeReloadManual = true;
+      mulaiPantauIframeMacet();
+
+      const srcSekarang = iframe.src || linkGoogleForm;
+      iframe.src = "about:blank";
+
+      setTimeout(() => {
+        iframe.src = srcSekarang.includes("?")
+          ? `${srcSekarang}&reload=${Date.now()}`
+          : `${srcSekarang}?reload=${Date.now()}`;
+      }, 350);
+    }
+
+
+    // ============================================================
+    // TOLERANSI POPUP / PERUBAHAN LAYAR
+    // ============================================================
+    function prosesPopupDenganToleransi(alasan) {
+      beriPeringatanAtauKunci(
+        "popup/perubahan layar",
+        "PERINGATAN: Popup atau perubahan layar terdeteksi. Tutup popup dan tetap berada di halaman ujian. Jika terulang, ujian akan dikunci.",
+        alasan,
+        1
+      );
+    }
+
+    // ============================================================
+    // PROTEKSI INTI
+    // ============================================================
+    document.addEventListener("visibilitychange", () => {
+      if (statusTerkunci && !document.hidden) {
+        setTimeout(paksaFullscreenSaatTerkunci, 250);
+        return;
+      }
+
+      if (examAktif && document.hidden && !statusTerkunci) {
+        setTimeout(() => {
+          if (examAktif && !statusTerkunci && document.hidden) {
+            prosesPopupDenganToleransi("Peserta membuka aplikasi/tab lain atau keluar dari halaman ujian.");
+          }
+        }, 1500);
+      }
+
+      if (examAktif && !document.hidden && !statusTerkunci) {
+        aktifkanToleransiPerubahanLayar(2500);
+        setTimeout(masukFullscreen, 500);
+        aktifkanUlangWakeLockRingan();
+      }
+    });
+
+    window.addEventListener("pagehide", () => {
+      if (examAktif && !statusTerkunci && !sistemSedangUnlock) {
+        if (refreshDiizinkanKarenaJaringan()) {
+          simpanToleransiJaringan();
+          tulisLog("Halaman tertutup/refresh saat gangguan jaringan. Diberi toleransi pemulihan.");
+          return;
+        }
+
+        localStorage.setItem(KEY_BREACH, "true");
+        tulisLog("Halaman ujian ditutup atau dipindahkan.");
+      }
+    });
+
+    window.addEventListener("beforeunload", () => {
+      if (examAktif && !statusTerkunci && !sistemSedangUnlock) {
+        if (refreshDiizinkanKarenaJaringan()) {
+          simpanToleransiJaringan();
+          tulisLog("Refresh/keluar saat gangguan jaringan. Diberi toleransi pemulihan.");
+          return;
+        }
+
+        localStorage.setItem(KEY_BREACH, "true");
+        tulisLog("Peserta menutup atau me-refresh halaman saat ujian aktif.");
+      }
+    });
+
+    document.addEventListener("fullscreenchange", cekFullscreen);
+    document.addEventListener("webkitfullscreenchange", cekFullscreen);
+
+    function cekFullscreen() {
+      if (!examAktif || statusTerkunci) return;
+
+      if (Date.now() < abaikanCekLayarSampai) return;
+
+      clearTimeout(popupToleransiTimer);
+
+      popupToleransiTimer = setTimeout(() => {
+        if (!examAktif || statusTerkunci) return;
+
+        const fullscreenAktif = document.fullscreenElement || document.webkitFullscreenElement;
+
+        if (!fullscreenAktif) {
+          prosesPopupDenganToleransi("Keluar dari layar penuh atau popup sistem terdeteksi.");
+        }
+      }, 2800);
+    }
+
+    function mulaiCekLayar() {
+      if (screenCheckInterval) clearInterval(screenCheckInterval);
+
+      screenCheckInterval = setInterval(cekLayarTerbagi, 2500);
+
+      window.addEventListener("resize", () => {
+        aktifkanToleransiPerubahanLayar(1800);
+        setTimeout(simpanUkuranAwalLayar, 1500);
+      });
+
+      window.addEventListener("orientationchange", () => {
+        aktifkanToleransiPerubahanLayar(3000);
+        setTimeout(simpanUkuranAwalLayar, 1600);
+      });
+
+      window.addEventListener("blur", () => {
+        if (!examAktif || statusTerkunci) return;
+        clearTimeout(fokusHilangTimer);
+
+        fokusHilangTimer = setTimeout(() => {
+          if (!examAktif || statusTerkunci) return;
+
+          // Popup kecil dari browser/Google Form tidak langsung dianggap curang.
+          // Dikunci hanya jika halaman benar-benar tersembunyi atau layar mengecil mencurigakan.
+          if (document.hidden || layarMengecilMencurigakan()) {
+            prosesPopupDenganToleransi("Popup, tab, split screen, atau aplikasi lain terdeteksi.");
+          }
+        }, 3000);
+      });
+
+      window.addEventListener("focus", () => {
+        clearTimeout(fokusHilangTimer);
+      });
+    }
+
+    function simpanUkuranAwalLayar() {
+      ukuranAwal = {
+        screenWidth: window.screen.availWidth || window.screen.width,
+        screenHeight: window.screen.availHeight || window.screen.height
+      };
+    }
+
+    function cekLayarTerbagi() {
+      if (!examAktif || statusTerkunci || !ukuranAwal) return;
+      if (Date.now() < abaikanCekLayarSampai) return;
+
+      const fullscreenAktif = document.fullscreenElement || document.webkitFullscreenElement;
+      if (!fullscreenAktif) return;
+
+      if (layarMengecilMencurigakan()) {
+        beriPeringatanAtauKunci(
+          "split screen",
+          "PERINGATAN LAYAR: Ukuran layar ujian berubah atau mengecil. Tutup split screen/popup dan kembali ke halaman ujian. Jika terulang, ujian akan dikunci.",
+          "Split screen, popup, atau layar ujian mengecil terdeteksi.",
+          1
+        );
+      }
+    }
+
+    function layarMengecilMencurigakan() {
+      if (!ukuranAwal) return false;
+
+      const screenWidth = window.screen.availWidth || window.screen.width || ukuranAwal.screenWidth;
+      const screenHeight = window.screen.availHeight || window.screen.height || ukuranAwal.screenHeight;
+
+      const rasioLebar = window.innerWidth / screenWidth;
+      const rasioTinggi = window.innerHeight / screenHeight;
+
+      if (rasioLebar < 0.72) return true;
+      if (rasioTinggi < 0.52 && rasioLebar < 0.95) return true;
+
+      if (window.visualViewport) {
+        const vvLebar = window.visualViewport.width / screenWidth;
+        if (vvLebar < 0.72) return true;
+      }
+
+      return false;
+    }
+
+    ["copy", "cut", "paste", "contextmenu", "dragstart", "selectstart"].forEach(evt => {
+      document.addEventListener(evt, event => {
+        if (eventDariPopupPeringatan(event)) return;
+        event.preventDefault();
+        if (examAktif && !statusTerkunci) {
+          beriPeringatanAtauKunci(
+            `aktivitas ${evt}`,
+            `PERINGATAN: Aktivitas ${evt} terdeteksi. Aktivitas ini tidak diperlukan saat ujian. Jika terulang, ujian akan dikunci.`,
+            `Aktivitas ${evt} terdeteksi berulang. Aktivitas ini tidak diperlukan saat ujian.`,
+            1
+          );
+        }
+      }, true);
+    });
+
+    function eventDariPanelKunci(event) {
+      if (eventDariPopupPeringatan(event)) return true;
+      const overlay = document.getElementById("lock-overlay");
+      const panel = document.querySelector(".lock-panel");
+
+      if (!statusTerkunci || !overlay || overlay.style.display !== "flex") return true;
+
+      if (panel && panel.contains(event.target)) return true;
+
+      event.preventDefault();
+      event.stopPropagation();
+      return false;
+    }
+
+    ["touchstart", "touchmove", "touchend", "click", "mousedown", "mouseup", "pointerdown", "pointermove", "pointerup", "contextmenu", "copy", "cut", "paste", "selectstart"].forEach(evt => {
+      document.addEventListener(evt, eventDariPanelKunci, true);
+    });
+
+    document.addEventListener("keydown", function(event) {
+      if (!statusTerkunci) return;
+
+      const panel = document.querySelector(".lock-panel");
+      const tokenInput = document.getElementById("token-input");
+
+      if (panel && panel.contains(event.target)) {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          bukaKunciUjian();
+        }
+        return;
+      }
+
+      event.preventDefault();
+      event.stopPropagation();
+      if (tokenInput) tokenInput.focus();
+    }, true);
+
+    document.addEventListener("touchstart", function(event) {
+      if (!examAktif || statusTerkunci) return;
+
+      const touch = event.touches[0];
+      touchStartX = touch.clientX;
+      touchStartY = touch.clientY;
+
+      clearTimeout(longPressTimer);
+
+      longPressTimer = setTimeout(() => {
+        if (!examAktif || statusTerkunci) return;
+        beriPeringatanAtauKunci(
+          "klik tahan",
+          "PERINGATAN: Klik tahan terdeteksi. Jangan menekan layar terlalu lama karena dapat dianggap mencoba menyalin soal. Jika terulang, ujian akan dikunci.",
+          "Klik tahan terdeteksi berulang. Aktivitas ini tidak diperlukan saat ujian.",
+          1
+        );
+      }, 2800);
+    }, true);
+
+    document.addEventListener("touchmove", function(event) {
+      if (!examAktif || statusTerkunci) return;
+
+      const touch = event.touches[0];
+      const geserX = Math.abs(touch.clientX - touchStartX);
+      const geserY = Math.abs(touch.clientY - touchStartY);
+
+      if (longPressTimer && geserY > 14) {
+        clearTimeout(longPressTimer);
+        longPressTimer = null;
+      }
+
+      if (geserX > 110 && geserX > geserY * 2) {
+        event.preventDefault();
+        beriPeringatanAtauKunci(
+          "geser kiri/kanan",
+          "PERINGATAN: Geser kiri/kanan terdeteksi. Saat ujian hanya boleh scroll atas-bawah. Jika terulang, ujian akan dikunci.",
+          "Geser kiri/kanan terdeteksi berulang. Saat ujian hanya boleh scroll atas-bawah.",
+          1
+        );
+      }
+    }, true);
+
+    document.addEventListener("touchend", function() {
+      if (longPressTimer) {
+        clearTimeout(longPressTimer);
+        longPressTimer = null;
+      }
+    }, true);
+
+    function tampilIndikator(teks) {
+      const indikator = document.getElementById("copy-indicator");
+      indikator.innerText = teks;
+      indikator.style.display = "block";
+      setTimeout(() => { indikator.style.display = "none"; }, 2500);
+    }
+
+
+
+    // ============================================================
+    // POPUP PERINGATAN + SUARA
+    // ============================================================
+    function aktifkanAudioPeringatan() {
+      if (audioSudahDiaktifkan) return;
+
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+
+        audioContextPeringatan = new AudioCtx();
+
+        if (audioContextPeringatan.state === "suspended") {
+          audioContextPeringatan.resume().catch(() => {});
+        }
+
+        audioSudahDiaktifkan = true;
+      } catch (error) {
+        audioSudahDiaktifkan = false;
+      }
+    }
+
+    function bunyiPeringatan() {
+      try {
+        aktifkanAudioPeringatan();
+        if (!audioContextPeringatan) return;
+
+        if (audioContextPeringatan.state === "suspended") {
+          audioContextPeringatan.resume().catch(() => {});
+        }
+
+        const ctx = audioContextPeringatan;
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.10, ctx.currentTime + 0.03);
+        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.42);
+        gain.connect(ctx.destination);
+
+        const osc = ctx.createOscillator();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(880, ctx.currentTime);
+        osc.connect(gain);
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 0.22);
+      } catch (error) {}
+    }
+
+    function tampilkanPopupPeringatan(kategori, pesan, jumlah, batas, pakaiSuara = false) {
+      const popup = document.getElementById("warning-popup");
+      const pesanEl = document.getElementById("warning-popup-message");
+      const noteEl = document.getElementById("warning-popup-note");
+
+      if (!popup || !pesanEl || !noteEl) return;
+
+      const levelText = jumlah === 1
+        ? "PERINGATAN 1 - JANGAN DIULANGI"
+        : "PERINGATAN 2 - TERAKHIR SEBELUM DIKUNCI";
+
+      const pesanUtama = jumlah === 1
+        ? "Sistem mendeteksi aktivitas yang tidak sesuai aturan ujian. Tetap tenang, hentikan aktivitas tersebut, dan lanjutkan mengerjakan soal dengan jujur."
+        : "Aktivitas mencurigakan terdeteksi kembali. Ini peringatan terakhir. Jika terulang lagi, layar ujian akan dikunci dan hanya pengawas yang dapat membukanya.";
+
+      pesanEl.innerHTML = `
+        <div class="warning-level-badge">${escapeHTML(levelText)}</div><br>
+        Kamu terdeteksi melakukan aktivitas mencurigakan:<br>
+        <b>${escapeHTML(kategori.toUpperCase())}</b><br><br>
+        ${escapeHTML(pesanUtama)}
+      `;
+
+      noteEl.innerHTML = `
+        <div class="warning-technical-note">
+          <b>Keterangan teknis:</b><br>
+          ${escapeHTML(pesan)}<br><br>
+          Sistem mencatat total aktivitas mencurigakan. Total saat ini: ${jumlah}/${BATAS_TOTAL_AKTIVITAS_MENCURIGAKAN}. Jika mencapai ${BATAS_TOTAL_AKTIVITAS_MENCURIGAKAN} kali, ujian akan dikunci otomatis.
+        </div>
+      `;
+
+      popup.style.display = "flex";
+
+      if (pakaiSuara) {
+        bunyiPeringatan();
+      }
+
+      setTimeout(() => {
+        tutupPopupPeringatan();
+      }, jumlah === 1 ? 4800 : 6500);
+    }
+
+
+    function popupPeringatanSedangTampil() {
+      const popup = document.getElementById("warning-popup");
+      return !!(popup && popup.style.display === "flex");
+    }
+
+    function eventDariPopupPeringatan(event) {
+      const popup = document.getElementById("warning-popup");
+      if (!popup || popup.style.display !== "flex") return false;
+      return popup.contains(event.target);
+    }
+
+    function tutupPopupPeringatan() {
+      const popup = document.getElementById("warning-popup");
+      if (popup) popup.style.display = "none";
+    }
+
+    // ============================================================
+    // TOLERANSI JARINGAN PUTUS
+    // ============================================================
+    function mulaiPantauJaringan() {
+      updateStatusJaringan();
+
+      window.addEventListener("offline", () => {
+        jaringanTerputus = true;
+        waktuKoneksiPutus = Date.now();
+        simpanToleransiJaringan();
+        tampilStatusJaringan("Koneksi terputus. Jangan refresh halaman. Tunggu jaringan kembali stabil.");
+        tampilkanPopupPeringatan(
+          "koneksi jaringan",
+          "Koneksi internet terputus. Jangan refresh halaman. Tunggu sampai jaringan kembali stabil.",
+          1,
+          2,
+          false
+        );
+      });
+
+      window.addEventListener("online", () => {
+        jaringanTerputus = false;
+        tampilStatusJaringan("Koneksi kembali. Lanjutkan ujian dengan hati-hati.");
+        setTimeout(sembunyiStatusJaringan, 4000);
+        aktifkanToleransiPerubahanLayar(4000);
+      });
+    }
+
+    function updateStatusJaringan() {
+      if (navigator.onLine === false) {
+        jaringanTerputus = true;
+        waktuKoneksiPutus = Date.now();
+        simpanToleransiJaringan();
+        tampilStatusJaringan("Koneksi terputus. Jangan refresh halaman. Tunggu jaringan kembali stabil.");
+      }
+    }
+
+    function tampilStatusJaringan(teks) {
+      const el = document.getElementById("network-status");
+      if (!el) return;
+      el.innerText = teks;
+      el.style.display = "block";
+    }
+
+    function sembunyiStatusJaringan() {
+      const el = document.getElementById("network-status");
+      if (el) el.style.display = "none";
+    }
+
+    function simpanToleransiJaringan() {
+      try {
+        localStorage.setItem(KEY_NETWORK_GRACE, JSON.stringify({
+          until: Date.now() + (10 * 60 * 1000),
+          waktuPutus: waktuKoneksiPutus || Date.now()
+        }));
+      } catch (e) {}
+    }
+
+    function adaToleransiJaringanAktif() {
+      try {
+        const raw = localStorage.getItem(KEY_NETWORK_GRACE);
+        if (!raw) return false;
+        const data = JSON.parse(raw);
+        return data && data.until && Date.now() <= data.until;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    function hapusToleransiJaringan() {
+      try {
+        localStorage.removeItem(KEY_NETWORK_GRACE);
+      } catch (e) {}
+    }
+
+    function refreshDiizinkanKarenaJaringan() {
+      return jaringanTerputus || navigator.onLine === false || adaToleransiJaringanAktif();
+    }
+
+
+    // ============================================================
+    // CEK BROWSER, POPUP PERINGATAN, SUARA RINGAN, JARINGAN, WAKE LOCK
+    // ============================================================
+    function cekDukunganBrowser() {
+      const pesan = [];
+
+      if (!window.isSecureContext) {
+        pesan.push("Link belum HTTPS. Kamera tidak akan berjalan.");
+      }
+
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        pesan.push("Browser tidak mendukung kamera. Gunakan Chrome/Edge terbaru.");
+      }
+
+      if (!("fetch" in window)) {
+        pesan.push("Browser terlalu lama dan tidak mendukung fitur jaringan modern.");
+      }
+
+      if (!("localStorage" in window)) {
+        pesan.push("Browser tidak mendukung penyimpanan lokal.");
+      }
+
+      const box = document.getElementById("compat-box");
+      if (box && pesan.length) {
+        box.innerHTML = `<b>PERINGATAN PERANGKAT:</b><br>${pesan.join("<br>")}<br><br>Gunakan Chrome/Edge terbaru.`;
+      }
+    }
+
+    function aktifkanAudioPeringatan() {
+      if (audioSudahDiaktifkan) return;
+
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+
+        audioContextPeringatan = new AudioCtx();
+
+        if (audioContextPeringatan.state === "suspended") {
+          audioContextPeringatan.resume().catch(() => {});
+        }
+
+        audioSudahDiaktifkan = true;
+      } catch (error) {
+        audioSudahDiaktifkan = false;
+      }
+    }
+
+    function bunyiPeringatan() {
+      try {
+        aktifkanAudioPeringatan();
+
+        if (!audioContextPeringatan) return;
+
+        if (audioContextPeringatan.state === "suspended") {
+          audioContextPeringatan.resume().catch(() => {});
+        }
+
+        const ctx = audioContextPeringatan;
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.09, ctx.currentTime + 0.03);
+        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.30);
+        gain.connect(ctx.destination);
+
+        const osc = ctx.createOscillator();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(760, ctx.currentTime);
+        osc.connect(gain);
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 0.22);
+      } catch (error) {}
+    }
+
+    function tampilkanPopupPeringatan(kategori, pesan, jumlah, batas) {
+      const popup = document.getElementById("warning-popup");
+      const pesanEl = document.getElementById("warning-popup-message");
+      const noteEl = document.getElementById("warning-popup-note");
+
+      if (!popup || !pesanEl || !noteEl) return;
+
+      pesanEl.innerHTML = `
+        Kamu terdeteksi melakukan aktivitas mencurigakan:<br>
+        <b>${escapeHTML(kategori.toUpperCase())}</b><br><br>
+        ${escapeHTML(pesan)}
+      `;
+
+      noteEl.innerText = "Ini adalah peringatan. Jika aktivitas yang sama terulang, ujian akan dikunci otomatis.";
+      popup.style.display = "flex";
+      bunyiPeringatan();
+
+      setTimeout(() => {
+        tutupPopupPeringatan();
+      }, 5200);
+    }
+
+    function tutupPopupPeringatan() {
+      const popup = document.getElementById("warning-popup");
+      if (popup) popup.style.display = "none";
+    }
+
+    function mulaiPantauJaringan() {
+      updateStatusJaringan();
+
+      window.addEventListener("offline", () => {
+        jaringanTerputus = true;
+        waktuKoneksiPutus = Date.now();
+        simpanToleransiJaringan();
+        tampilStatusJaringan("Koneksi terputus. Jangan refresh halaman. Tunggu jaringan kembali stabil.");
+        tampilkanPopupPeringatan(
+          "koneksi jaringan",
+          "Koneksi internet terputus. Jangan refresh halaman. Tunggu sampai jaringan kembali stabil.",
+          1,
+          2,
+          false
+        );
+      });
+
+      window.addEventListener("online", () => {
+        jaringanTerputus = false;
+        tampilStatusJaringan("Koneksi kembali. Lanjutkan ujian dengan hati-hati.");
+        setTimeout(sembunyiStatusJaringan, 3500);
+        aktifkanToleransiPerubahanLayar(4000);
+      });
+    }
+
+    function updateStatusJaringan() {
+      if (navigator.onLine === false) {
+        jaringanTerputus = true;
+        waktuKoneksiPutus = Date.now();
+        simpanToleransiJaringan();
+        tampilStatusJaringan("Koneksi terputus. Jangan refresh halaman. Tunggu jaringan kembali stabil.");
+      }
+    }
+
+    function tampilStatusJaringan(teks) {
+      const el = document.getElementById("network-status");
+      if (!el) return;
+      el.innerText = teks;
+      el.style.display = "block";
+    }
+
+    function sembunyiStatusJaringan() {
+      const el = document.getElementById("network-status");
+      if (el) el.style.display = "none";
+    }
+
+    function simpanToleransiJaringan() {
+      try {
+        localStorage.setItem(KEY_NETWORK_GRACE, JSON.stringify({
+          until: Date.now() + (10 * 60 * 1000),
+          waktuPutus: waktuKoneksiPutus || Date.now()
+        }));
+      } catch (e) {}
+    }
+
+    function adaToleransiJaringanAktif() {
+      try {
+        const raw = localStorage.getItem(KEY_NETWORK_GRACE);
+        if (!raw) return false;
+        const data = JSON.parse(raw);
+        return data && data.until && Date.now() <= data.until;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    function hapusToleransiJaringan() {
+      try {
+        localStorage.removeItem(KEY_NETWORK_GRACE);
+      } catch (e) {}
+    }
+
+    function refreshDiizinkanKarenaJaringan() {
+      return jaringanTerputus || navigator.onLine === false || adaToleransiJaringanAktif();
+    }
+
+    async function aktifkanWakeLockRingan() {
+      if (!("wakeLock" in navigator)) return;
+
+      try {
+        wakeLock = await navigator.wakeLock.request("screen");
+        wakeLockAktif = true;
+
+        wakeLock.addEventListener("release", () => {
+          wakeLockAktif = false;
+        });
+      } catch (error) {
+        wakeLockAktif = false;
+      }
+    }
+
+    async function aktifkanUlangWakeLockRingan() {
+      if (examAktif && !wakeLockAktif && document.visibilityState === "visible") {
+        await aktifkanWakeLockRingan();
+      }
+    }
+
+    async function lepaskanWakeLockRingan() {
+      try {
+        if (wakeLock) {
+          await wakeLock.release();
+          wakeLock = null;
+          wakeLockAktif = false;
+        }
+      } catch (error) {}
+    }
+
+    function beriPeringatanAtauKunci(kategori, pesanPeringatan, alasanKunci, batasPeringatan = BATAS_PERINGATAN_BERTINGKAT) {
+      if (!examAktif || statusTerkunci) return;
+
+      const batasJenis = Math.max(BATAS_PERINGATAN_BERTINGKAT, Number(batasPeringatan) || BATAS_PERINGATAN_BERTINGKAT);
+
+      if (!daftarPeringatanAktivitas[kategori]) {
+        daftarPeringatanAktivitas[kategori] = 0;
+      }
+
+      daftarPeringatanAktivitas[kategori]++;
+      totalAktivitasMencurigakan++;
+
+      const jumlahJenis = daftarPeringatanAktivitas[kategori];
+      const jumlahTotal = totalAktivitasMencurigakan;
+
+      if (jumlahJenis > batasJenis || jumlahTotal >= BATAS_TOTAL_AKTIVITAS_MENCURIGAKAN) {
+        prosesPelanggaran(
+          jumlahTotal >= BATAS_TOTAL_AKTIVITAS_MENCURIGAKAN
+            ? `Total aktivitas mencurigakan sudah ${jumlahTotal} kali. Ujian dikunci otomatis. Aktivitas terakhir: ${kategori}.`
+            : alasanKunci
+        );
+        return;
+      }
+
+      const label = document.getElementById("offense-label");
+      if (label && label.style.display !== "none") {
+        label.innerText = `Peringatan ${jumlahTotal}x`;
+      }
+
+      const pesanLevel = jumlahTotal === 1
+        ? `PERINGATAN 1: ${pesanPeringatan}`
+        : `PERINGATAN 2: Aktivitas mencurigakan terdeteksi kembali. Jika terulang lagi, ujian akan dikunci.`;
+
+      tampilPeringatanZonaKanan(pesanLevel);
+      tampilIndikator(`Peringatan ${jumlahTotal}: ${kategori}`);
+
+      const pakaiSuara = jumlahTotal >= 2 || jumlahJenis >= 2;
+      tampilkanPopupPeringatan(kategori, pesanPeringatan, jumlahTotal, BATAS_TOTAL_AKTIVITAS_MENCURIGAKAN, pakaiSuara);
+
+      aktifkanToleransiPerubahanLayar(4500);
+
+      // Mode ringan: tidak memaksa fullscreen ulang pada setiap peringatan.
+    }
+
+    function resetPeringatanAktivitas(kategori) {
+      if (daftarPeringatanAktivitas && kategori) {
+        daftarPeringatanAktivitas[kategori] = 0;
+      }
+    }
+
+    function prosesPelanggaran(alasan) {
+      if (!examAktif || statusTerkunci) return;
+
+      jumlahPelanggaran++;
+      document.getElementById("offense-label").innerText = `Pelanggaran ${jumlahPelanggaran}x.`;
+
+      kunciUjian(alasan);
+    }
+
+    // ============================================================
+    // LOCK
+    // ============================================================
+    function kunciUjian(alasan) {
+      if (statusTerkunci) return;
+
+      statusTerkunci = true;
+      localStorage.setItem(KEY_BREACH, "true");
+      tulisLog(alasan);
+
+      document.getElementById("lock-reason").innerText = alasan;
+      document.getElementById("lock-overlay").style.display = "flex";
+      document.body.classList.add("locked-mode");
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+
+      const iframe = document.getElementById("ujian-frame");
+      if (iframe) iframe.style.pointerEvents = "none";
+
+      if (lokalStream) {
+        lokalStream.getTracks().forEach(track => track.stop());
+        lokalStream = null;
+      }
+
+      document.getElementById("camera-label").innerText = "Terkunci";
+      document.body.classList.add("camera-lite");
+      mulaiPaksaFullscreenTerkunci();
+
+      setTimeout(() => {
+        const tokenInput = document.getElementById("token-input");
+        if (tokenInput) tokenInput.focus();
+      }, 200);
+    }
+
+    function bukaKunciUjian() {
+      const token = document.getElementById("token-input").value.trim();
+
+      if (token === TOKEN_PENGAWAS) {
+        bukaKunciDenganTokenValid();
+        return;
+      }
+
+      if (token === TOKEN_UJI_COBA) {
+        if (localStorage.getItem(KEY_TOKEN_UJI_COBA_USED) === "true") {
+          alert("Kode uji coba sudah pernah digunakan di perangkat/browser ini.");
+          return;
+        }
+
+        localStorage.setItem(KEY_TOKEN_UJI_COBA_USED, "true");
+        bukaKunciDenganTokenValid();
+        return;
+      }
+
+      alert("Kode guru salah.");
+    }
+
+    function bukaKunciDenganTokenValid() {
+      sistemSedangUnlock = true;
+      statusTerkunci = false;
+      localStorage.removeItem(KEY_BREACH);
+
+      hentikanPaksaFullscreenTerkunci();
+      document.body.classList.remove("locked-mode");
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+      document.getElementById("lock-overlay").style.display = "none";
+      document.getElementById("token-input").value = "";
+
+      const iframe = document.getElementById("ujian-frame");
+      if (iframe) iframe.style.pointerEvents = "auto";
+
+      simpanSesiAktif();
+      masukFullscreen();
+
+      setTimeout(simpanUkuranAwalLayar, 1000);
+
+      mintaIzinKamera()
+        .then(() => { sistemSedangUnlock = false; })
+        .catch(() => {
+          sistemSedangUnlock = false;
+          kunciUjian("Kamera belum aktif setelah pengawas membuka kunci.");
+        });
+    }
+
+    function paksaFullscreenSaatTerkunci() {
+      if (!statusTerkunci) return;
+      const fullscreenAktif = document.fullscreenElement || document.webkitFullscreenElement;
+      if (!fullscreenAktif) masukFullscreen();
+    }
+
+    function mulaiPaksaFullscreenTerkunci() {
+      if (lockFullscreenInterval) clearInterval(lockFullscreenInterval);
+      paksaFullscreenSaatTerkunci();
+      lockFullscreenInterval = setInterval(paksaFullscreenSaatTerkunci, 900);
+    }
+
+    function hentikanPaksaFullscreenTerkunci() {
+      if (lockFullscreenInterval) {
+        clearInterval(lockFullscreenInterval);
+        lockFullscreenInterval = null;
+      }
+    }
+
+    // ============================================================
+    // SESSION
+    // ============================================================
+    window.addEventListener("storage", (event) => {
+      if (!examAktif || statusTerkunci) return;
+
+      if (event.key === KEY_BREACH && event.newValue === "true") {
+        beriPeringatanAtauKunci(
+          "tab lain",
+          "PERINGATAN TAB: Sistem mendeteksi aktivitas dari tab lain. Tutup tab lain dan tetap di halaman ujian. Jika terulang, ujian akan dikunci.",
+          "Sistem mendeteksi pelanggaran dari tab lain.",
+          1
+        );
+      }
+
+      if (event.key === KEY_ACTIVE) {
+        const sesi = bacaSesiAktif();
+        if (sesi && sesi.tabId !== tabId && sesiMasihHidup(sesi)) {
+          beriPeringatanAtauKunci(
+            "tab ganda",
+            "PERINGATAN TAB GANDA: Ujian hanya boleh dibuka pada satu tab. Tutup tab lain sekarang. Jika terulang, ujian akan dikunci.",
+            "Tab lain mencoba mengambil sesi ujian ini.",
+            1
+          );
+        }
+      }
+    });
+
+    function siapkanKomunikasiAntarTab() {
+      if ("BroadcastChannel" in window) {
+        channel = new BroadcastChannel(`cyberlock_lite_channel_${kodeUjian || "default"}`);
+        channel.onmessage = (event) => {
+          const data = event.data || {};
+          if (!examAktif || statusTerkunci) return;
+          if (data.from === tabId) return;
+
+          if (data.type === "DUPLICATE_TAB" || data.type === "LOCK") {
+            beriPeringatanAtauKunci(
+              "broadcast tab",
+              "PERINGATAN TAB: Sistem mendeteksi tab lain. Tutup tab lain dan tetap di halaman ujian. Jika terulang, ujian akan dikunci.",
+              data.reason || "Sistem mendeteksi tab lain.",
+              1
+            );
+          }
+        };
+      }
+    }
+
+    function simpanSesiAktif() {
+      const data = { tabId, deviceId, kodeUjian, peserta, lastBeat: Date.now() };
+      localStorage.setItem(KEY_ACTIVE, JSON.stringify(data));
+    }
+
+    function bacaSesiAktif() {
+      try {
+        const raw = localStorage.getItem(KEY_ACTIVE);
+        return raw ? JSON.parse(raw) : null;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function sesiMasihHidup(sesi) {
+      if (!sesi || !sesi.lastBeat) return false;
+      return Date.now() - sesi.lastBeat < 6000;
+    }
+
+    function mulaiHeartbeat() {
+      if (heartbeatInterval) clearInterval(heartbeatInterval);
+
+      heartbeatInterval = setInterval(() => {
+        if (!examAktif || statusTerkunci) return;
+
+        const sesi = bacaSesiAktif();
+        if (sesi && sesi.tabId !== tabId && sesiMasihHidup(sesi)) {
+          beriPeringatanAtauKunci(
+            "sesi tab lain",
+            "PERINGATAN SESI: Sesi ujian terdeteksi aktif di tab lain. Tutup tab lain sekarang. Jika terulang, ujian akan dikunci.",
+            "Sesi ujian aktif di tab lain.",
+            1
+          );
+          return;
+        }
+
+        simpanSesiAktif();
+      }, 1200);
+    }
+
+    function buatIdUnik() {
+      if (crypto && crypto.randomUUID) return crypto.randomUUID();
+      return `id_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+    }
+
+    function ambilAtauBuatDeviceId() {
+      const key = "cyberlock_device_id";
+      let id = localStorage.getItem(key);
+      if (!id) {
+        id = buatIdUnik();
+        localStorage.setItem(key, id);
+      }
+      return id;
+    }
+
+    // ============================================================
+    // WATERMARK, CSV, CACHE
+    // ============================================================
+    function perbaruiWatermark() {
+      const text = peserta;
+      const repeated = Array(60).fill(text).join("     ");
+      document.getElementById("watermark").innerText = repeated;
+
+      setTimeout(() => {
+        if (examAktif && !statusTerkunci) perbaruiWatermark();
+      }, 10000);
+    }
+
+    function simpanCacheDatabase(csvText) {
+      try {
+        const data = {
+          savedAt: Date.now(),
+          spreadsheetId: SPREADSHEET_ID,
+          gid: SHEET_GID,
+          csvText
+        };
+        const json = JSON.stringify(data);
+        sessionStorage.setItem(KEY_CACHE_GLOBAL, json);
+        localStorage.setItem(KEY_CACHE_GLOBAL, json);
+      } catch (e) {}
+    }
+
+    function ambilCacheDatabase(abaikanMasaBerlaku = false) {
+      const sumber = [
+        () => sessionStorage.getItem(KEY_CACHE_GLOBAL),
+        () => localStorage.getItem(KEY_CACHE_GLOBAL)
+      ];
+
+      for (const getRaw of sumber) {
+        try {
+          const raw = getRaw();
+          if (!raw) continue;
+
+          const data = JSON.parse(raw);
+          if (!cacheMasihValid(data, abaikanMasaBerlaku)) continue;
+
+          return data;
+        } catch (e) {}
+      }
+
+      return null;
+    }
+
+    function cacheMasihValid(data, abaikanMasaBerlaku = false) {
+      if (!data || !data.csvText || !data.savedAt) return false;
+      if (data.spreadsheetId && data.spreadsheetId !== SPREADSHEET_ID) return false;
+      if (data.gid && data.gid !== SHEET_GID) return false;
+
+      const umurCache = Date.now() - data.savedAt;
+      if (!abaikanMasaBerlaku && umurCache > DATABASE_CACHE_TTL) return false;
+
+      const db = buatDatabaseDariCSV(data.csvText);
+      const dataUjian = db.get(kodeUjian);
+      return !!(dataUjian && dataUjian.link);
+    }
+
+    function buatDatabaseDariCSV(csvText) {
+      const database = new Map();
+      const baris = csvText.split(/\r?\n/).filter(row => row.trim() !== "");
+
+      for (const row of baris) {
+        const kolom = parseCSVLine(row);
+
+        const kolomA = (kolom[0] || "").trim();
+        const kolomB = (kolom[1] || "").trim();
+        const kolomC = (kolom[2] || "").trim();
+
+        let nama = kolomA;
+        let kode = kolomB;
+        let link = kolomC;
+
+        const headerA = kolomA.toLowerCase();
+        const headerB = kolomB.toLowerCase();
+        const headerC = kolomC.toLowerCase();
+
+        if (
+          headerA.includes("nama") ||
+          headerA.includes("mata pelajaran") ||
+          headerB.includes("kode") ||
+          headerC.includes("link")
+        ) {
+          continue;
+        }
+
+        if (!link && kolomB.includes("docs.google.com/forms")) {
+          nama = kolomA;
+          kode = kolomA;
+          link = kolomB;
+        }
+
+        const key = (kode || "").trim().toLowerCase();
+
+        if (key && link) {
+          database.set(key, {
+            namaMapel: nama || key.toUpperCase(),
+            kode: key,
+            link: link
+          });
+        }
+      }
+
+      return database;
+    }
+
+    function parseCSVLine(line) {
+      const result = [];
+      let current = "";
+      let insideQuote = false;
+
+      for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+
+        if (char === '"' && line[i + 1] === '"') {
+          current += '"';
+          i++;
+        } else if (char === '"') {
+          insideQuote = !insideQuote;
+        } else if (char === "," && !insideQuote) {
+          result.push(current.trim());
+          current = "";
+        } else {
+          current += char;
+        }
+      }
+
+      result.push(current.trim());
+      return result;
+    }
+
+    function ubahKeEmbedGoogleForm(url) {
+      url = String(url || "").trim();
+
+      if (!url.includes("docs.google.com/forms")) {
+        throw new Error("Link bukan Google Form.");
+      }
+
+      url = url.replace("/edit", "/viewform");
+      url = url.split("?")[0];
+
+      if (!url.endsWith("/viewform")) {
+        url += "/viewform";
+      }
+
+      return `${url}?embedded=true`;
+    }
+
+    // ============================================================
+    // UI
+    // ============================================================
+    function tampilkanNamaMapel() {
+      const label = document.getElementById("exam-code-label");
+      if (label && namaMapel) {
+        label.innerText = `MAPEL ${namaMapel.toUpperCase()}`;
+      }
+    }
+
+    function ubahStatus(teks) {
+      const el = document.getElementById("status-text");
+      if (el) el.innerText = teks;
+    }
+
+    function updateChecklist() {
+      const el = document.getElementById("checklist-status");
+      if (!el) return;
+
+      const db = databaseSiap ? "Database siap" : "Database belum siap";
+      const kamera = lokalStream ? "Kamera aktif" : "Kamera belum aktif";
+
+      el.innerText = `Status: ${db} • ${kamera}`;
+    }
+
+    function tampilkanError(judul, deskripsi) {
+      document.getElementById("panel-konten").innerHTML = `
+        <div class="error-title">${escapeHTML(judul)}</div>
+        <div class="error-text">${escapeHTML(deskripsi)}</div>
+        <div class="btn-row">
+          <button class="btn-dark" onclick="location.reload()">Muat Ulang Halaman</button>
+        </div>
+      `;
+    }
+
+    function tampilkanUjianSudahSelesai() {
+      document.getElementById("panel-konten").innerHTML = `
+        <h1 class="main-title">UJIAN SUDAH SELESAI</h1>
+        <div class="anti-cheat-title">Akses Ditutup</div>
+        <div class="info-box" style="text-align:center;">
+          Ujian dengan kode <b>${escapeHTML(kodeUjian.toUpperCase())}</b> Mapel <b>${escapeHTML(namaMapel.toUpperCase())}</b>  sudah ditutup pada perangkat/browser ini.<br><br>
+          Jika ini kesalahan, hubungi pengawas/guru.
+        </div>
+      `;
+    }
+
+    function tulisLog(teks) {
+      const data = {
+        waktu: new Date().toLocaleString("id-ID"),
+        peserta,
+        kodeUjian,
+        alasan: teks
+      };
+      localStorage.setItem(KEY_LOG, JSON.stringify(data));
+    }
+
+    function escapeHTML(str) {
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+  </script>
+</body>
+</html>
