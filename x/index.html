@@ -22,9 +22,9 @@
     }
 
     :root {
-      --zona-kanan: 50vw;
-      --zona-bawah-aman: clamp(190px, 32vh, 360px);
-      --topbar-height: clamp(50px, 7vh, 60px);
+      --zona-kanan: 30vw;
+      --zona-bawah-aman: clamp(70px, 18vh, 155px);
+      --topbar-height: clamp(40px, 7.5vh, 54px);
       --font-topbar: clamp(7.5px, 1.95vw, 10.5px);
     }
 
@@ -918,51 +918,106 @@
     }
 
 
-    /* Tombol Muat Database tetap tersedia untuk HP yang lambat membaca Spreadsheet */
-    .database-action-row {
-      display: flex;
-      gap: 8px;
-      width: 100%;
-      margin-top: 10px;
-      flex-wrap: wrap;
-    }
-    .btn-db-reload {
-      flex: 1 1 160px;
-      border: 1px solid rgba(0, 255, 170, .45);
+    /* VERSI TERBAIK LAPANGAN: tampilan awal ringkas agar siswa tidak bingung */
+    .simple-rules {
+      margin: 12px 0;
+      padding: 12px;
       border-radius: 12px;
-      padding: 11px 12px;
-      background: rgba(0, 255, 170, .10);
-      color: #baffee;
-      font-size: clamp(11px, 3.2vw, 13px);
-      font-weight: 900;
+      background: rgba(0, 255, 170, .08);
+      border: 1px solid rgba(0, 255, 170, .55);
+      color: #eafff8;
+      text-align: left;
+      font-size: clamp(12px, 3.3vw, 14px);
+      line-height: 1.55;
+    }
+
+    .simple-rules b {
+      color: #00ffaa;
+    }
+
+    .browser-choice-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .browser-choice {
+      border: 1px solid rgba(255,255,255,.20);
+      border-radius: 10px;
+      padding: 9px;
+      background: rgba(255,255,255,.06);
+      color: white;
+      font-size: 12px;
+      font-weight: 800;
       text-align: center;
       touch-action: manipulation;
       user-select: none;
       -webkit-user-select: none;
     }
-    .btn-db-reload:active {
-      transform: scale(.98);
+
+    .browser-choice.aktif {
+      border-color: #00ffaa;
+      background: rgba(0,255,170,.14);
+      color: #baffee;
     }
-    .db-mini-note {
-      margin-top: 7px;
-      color: rgba(255,255,255,.72);
-      font-size: clamp(10px, 2.8vw, 12px);
-      line-height: 1.35;
-      text-align: center;
+
+    .ready-check {
+      margin: 12px 0;
+      padding: 12px;
+      border-radius: 12px;
+      background: rgba(255, 193, 7, .10);
+      border: 1px solid rgba(255, 193, 7, .55);
+      color: #fff1bf;
+      text-align: left;
+      font-size: clamp(12px, 3.3vw, 14px);
+      line-height: 1.45;
     }
-    .db-status-lite {
-      margin-top: 6px;
-      padding: 7px 9px;
-      border-radius: 10px;
-      background: rgba(255,255,255,.06);
-      color: #dbeafe;
-      font-size: clamp(10px, 2.8vw, 12px);
-      line-height: 1.35;
-      text-align: center;
-      display: none;
+
+    .ready-check label {
+      display: flex;
+      align-items: flex-start;
+      gap: 9px;
+      cursor: pointer;
     }
-    .db-status-lite.show {
-      display: block;
+
+    .ready-check input {
+      width: 18px;
+      height: 18px;
+      margin-top: 1px;
+      flex: 0 0 auto;
+    }
+
+    .compact-note {
+      margin-top: 8px;
+      color: #a8c6d6;
+      font-size: 11.5px;
+      line-height: 1.4;
+      text-align: left;
+    }
+
+    /* Landscape adalah mode utama ujian */
+    @media (orientation: landscape) {
+      :root {
+        --zona-kanan: 30vw;
+        --zona-bawah-aman: clamp(62px, 16vh, 145px);
+        --topbar-height: clamp(38px, 8vh, 52px);
+        --font-topbar: clamp(7px, 1.45vw, 10px);
+      }
+
+      #topbar {
+        grid-template-columns: 23% 1fr 36%;
+      }
+
+      #right-touch-guard::after {
+        top: 38%;
+      }
+    }
+
+    @media (orientation: portrait) {
+      #orientation-warning.force-show {
+        display: block;
+      }
     }
 
   </style>
@@ -973,33 +1028,26 @@
     <div class="panel" id="panel-konten">
       <h1 class="main-title">CIKPUS CYBERLOCK</h1>
       <div class="anti-cheat-title">Ujian Anti Curang !</div>
-      <div class="sub-title">KELAS X - GOOGLE FORM SECURE</div>
+      <div class="sub-title">MODE LANDSCAPE - GOOGLE FORM SECURE</div>
 
-       <div class="alert-box">
-        <b>PERINGATAN UJIAN:</b><br>
-        1. Gunakan 1 smartphone dan pastikan login email Google sebelum mulai.<br>
-        2. Isi semua petanyaan dengan benar, jujur dan tidak menyontek.<br>
-        3. Gunakan hanya bagian kiri layar untuk scroll dan menjawab soal.<br>
-        4. Setengah kanan layar adalah zona pengawasan. Sentuhan ringan tidak langsung dihitung, tetapi sentuhan/gerakan berulang akan menjadi peringatan. Bagian bawah layar diperluas untuk tombol Google Form.<br>
-        5. Tombol Selesai akan muncul saat semua soal telah dikerjakan atau ujian berjalan 30 menit.<br>6. Untuk HP lama, gunakan Chrome/Edge terbaru, matikan hemat baterai, dan atur layar mati otomatis minimal 10–30 menit.
+      <div class="simple-rules">
+        <b>Sebelum mulai ujian:</b><br/>
+        1. Gunakan <b>Chrome</b> atau <b>Edge</b> terbaru.<br/>
+        2. Putar HP ke posisi <b>landscape/mendatar</b>.<br/>
+        3. Tutup semua tab dan aplikasi lain.<br/>
+        4. Izinkan kamera jika diminta.<br/>
+        5. Kerjakan soal dengan jujur sampai selesai.
       </div>
 
-      <div class="info-box">
-		<b>PERHATIAN:</b><br>
-		Sistem ini memantau kamu dari kamera, layar, tab/aplikasi dan gerakan jari yang dilakukan. Aktivitas mencurigakan akan diberi peringatan bertingkat: 1x muncul peringatan, 2x muncul peringatan disertai bunyi singkat, dan 3x aktivitas mencurigakan akan mengunci ujian otomatis. Kerjakan dengan jujur, karena hanya pengawas yang dapat membuka kunci Ujian.
-		</div>
-
-
-      <div class="info-box" id="compat-box">
-        <b>CEK PERANGKAT:</b><br>
-        Gunakan <b>Chrome/Edge terbaru</b>. Minimal disarankan Chrome/Edge <b>84+</b>, rekomendasi <b>100+</b>.
-        Hindari browser bawaan HP lama, UC Browser, Opera Mini, dan membuka link dari WhatsApp/Instagram.
-      </div>
-
-
-      <div class="info-box" id="iphone-cookie-note">
-        <b>Catatan iPhone:</b><br>
-        Jika Google Form meminta login/cookies dan tidak terbuka di iPhone, gunakan Chrome/Edge terbaru. Jika tetap bermasalah, pengawas dapat memakai tombol darurat Form langsung dengan kode rahasia.
+      <div class="form-group">
+        <label>Browser yang digunakan</label>
+        <div class="browser-choice-grid">
+          <button type="button" class="browser-choice" id="browser-chrome" onclick="pilihBrowserUjian('chrome')">Chrome</button>
+          <button type="button" class="browser-choice" id="browser-edge" onclick="pilihBrowserUjian('edge')">Edge</button>
+          <button type="button" class="browser-choice" id="browser-safari" onclick="pilihBrowserUjian('safari')">Safari / iPhone</button>
+          <button type="button" class="browser-choice" id="browser-lain" onclick="pilihBrowserUjian('lain')">Browser Lain</button>
+        </div>
+        <div class="compact-note" id="browser-note">Pilih browser terlebih dahulu. Chrome/Edge paling disarankan.</div>
       </div>
 
       <div class="form-group">
@@ -1007,31 +1055,28 @@
         <input id="peserta-input" class="form-control" type="text" placeholder="Contoh: Ahmad - XII TKRO 1" autocomplete="off" />
       </div>
 
+      <div class="ready-check">
+        <label>
+          <input type="checkbox" id="siap-ujian-check" onchange="ubahKesiapanSiswa()" />
+          <span>Saya sudah menutup tab/aplikasi lain dan siap mengikuti ujian dengan jujur.</span>
+        </label>
+      </div>
+
       <div class="status-text" id="status-text">Menghubungkan ke Google Spreadsheet...</div>
 
       <div class="btn-row">
         <a class="btn-link" href="https://accounts.google.com/" target="_blank" rel="noopener noreferrer">Login Email Google Dulu</a>
         <button class="btn-dark" type="button" onclick="refreshDatabaseManual()">Muat Ulang Database</button>
-        
-      <div class="database-action-row" id="database-action-row">
-        <button class="btn-db-reload" type="button" onclick="muatUlangDatabaseManual()">
-          ↻ Muat Database
-        </button>
-      </div>
-      <div class="db-mini-note">
-        Jika mapel/link belum terbaca atau HP lama lambat terhubung ke Spreadsheet, tekan <b>Muat Database</b> terlebih dahulu.
-      </div>
-      <div class="db-status-lite" id="db-status-lite"></div>
-
-<button class="btn-primary" id="btn-mulai" onclick="inisialisasiAplikasi()" disabled>Memuat Ujian...</button>
+        <button class="btn-primary" id="btn-mulai" onclick="inisialisasiAplikasi()" disabled>Memuat Ujian...</button>
       </div>
 
       <div class="checklist" id="checklist-status">
-        Status: Database belum siap • Kamera belum aktif
+        Status: Database belum siap • Pilih browser • Centang kesiapan
       </div>
 
       <div class="small-note">
-        Update terbaru: Muat Database tetap tersedia, zona pengawasan lebih toleran, tombol Refresh Soal tersedia, mode iPhone/cookies darurat dengan kode pengawas, dan perubahan orientasi diberi toleransi.
+        Jika soal tidak muncul saat ujian, gunakan tombol <b>Refresh Soal</b> atau lapor pengawas.
+		  © 2026 ICT Cikpus
       </div>
     </div>
   </div>
@@ -1066,7 +1111,7 @@
       ></iframe>
     </div>
 
-    <div id="orientation-warning">Kembalikan HP ke posisi POTRET. Jangan gunakan landscape/split screen saat ujian.</div>
+    <div id="orientation-warning">Putar HP ke posisi LANDSCAPE/MENDATAR. Jangan gunakan split screen saat ujian.</div>
     <button id="iframe-refresh-quick-btn" type="button" onclick="reloadIframeSoalMacet()" title="Refresh soal jika Google Form macet">↻ Refresh Soal</button>
     <div id="right-touch-guard"></div>
     <div id="bottom-safe-note">Area bawah aman untuk tombol Google Form</div>
@@ -1128,7 +1173,8 @@
     // Kamera dibuat ringan agar lebih cocok untuk banyak tipe HP/browser.
     const CAMERA_TIMEOUT = 8000;
     const CAMERA_FAIL_LIMIT = 3;
-    const TAMPILKAN_PREVIEW_KAMERA = false; // false = kamera tetap aktif, tapi preview video tidak dirender agar HP lama lebih ringan
+    const TAMPILKAN_PREVIEW_KAMERA = false;
+    const ORIENTASI_UTAMA_UJIAN = "landscape"; // false = kamera tetap aktif, tapi preview video tidak dirender agar HP lama lebih ringan
     const BATAS_PERINGATAN_BERTINGKAT = 2; // 1x peringatan, 2x peringatan + bunyi, 3x terkunci untuk jenis yang sama
     const BATAS_TOTAL_AKTIVITAS_MENCURIGAKAN = 3; // total aktivitas mencurigakan apa pun, 3x terkunci // 1x peringatan, 2x peringatan + bunyi, 3x terkunci
 
@@ -1194,6 +1240,9 @@
     let guardGestureSudahDiproses = false;
     let tombolSelesaiAktif = false;
     let formLoadCount = 0;
+    let browserPilihanSiswa = "";
+    let siswaSiapUjian = false;
+    let pesanUjianSiapTerakhir = ""; 
     let audioContextPeringatan = null;
     let audioSudahDiaktifkan = false;
     let jaringanTerputus = false;
@@ -1402,10 +1451,9 @@
     }
 
     function aktifkanTombolMulai(pesan) {
-      const btn = document.getElementById("btn-mulai");
-      btn.disabled = false;
-      btn.innerText = "Mulai Ujian Sekarang";
+      pesanUjianSiapTerakhir = pesan || "";
       ubahStatus(pesan);
+      evaluasiTombolMulai();
       updateChecklist();
     }
 
@@ -1418,6 +1466,21 @@
       if (!peserta) {
         alert("Isi nama dan kelas terlebih dahulu.");
         return;
+      }
+
+      if (!browserPilihanSiswa) {
+        alert("Pilih browser yang digunakan terlebih dahulu.");
+        return;
+      }
+
+      if (!siswaSiapUjian) {
+        alert("Centang pernyataan kesiapan terlebih dahulu. Pastikan tab dan aplikasi lain sudah ditutup.");
+        return;
+      }
+
+      if (browserPilihanSiswa === "lain") {
+        const lanjut = confirm("Browser ini tidak disarankan. Untuk hasil terbaik gunakan Chrome atau Edge. Tetap lanjut?");
+        if (!lanjut) return;
       }
 
       if (!databaseSiap || !linkGoogleForm) {
@@ -1439,96 +1502,6 @@
         alert("Kamera belum bisa aktif. Gunakan Chrome/Edge terbaru, izinkan kamera, tutup aplikasi kamera lain, lalu coba lagi.");
       }
     }
-
-
-    // ============================================================
-    // MUAT DATABASE MANUAL
-    // ============================================================
-    function tampilStatusDatabaseLite(teks, tipe = "info") {
-      const el = document.getElementById("db-status-lite");
-      if (!el) return;
-
-      el.classList.add("show");
-      el.innerText = teks;
-
-      if (tipe === "ok") {
-        el.style.background = "rgba(34, 197, 94, .16)";
-        el.style.color = "#bbf7d0";
-      } else if (tipe === "error") {
-        el.style.background = "rgba(239, 68, 68, .16)";
-        el.style.color = "#fecaca";
-      } else {
-        el.style.background = "rgba(255,255,255,.06)";
-        el.style.color = "#dbeafe";
-      }
-    }
-
-    function bersihkanCacheDatabaseManual() {
-      try {
-        const hapus = [];
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i);
-          if (!key) continue;
-
-          const lower = key.toLowerCase();
-          if (
-            lower.includes("database") ||
-            lower.includes("cache") ||
-            lower.includes("spreadsheet") ||
-            lower.includes("sheet")
-          ) {
-            // Jangan hapus token unlock atau catatan pelanggaran.
-            if (!lower.includes("breach") && !lower.includes("token") && !lower.includes("unlock")) {
-              hapus.push(key);
-            }
-          }
-        }
-
-        hapus.forEach(key => localStorage.removeItem(key));
-      } catch (e) {}
-    }
-
-    async function muatUlangDatabaseManual() {
-      const tombol = document.querySelector(".btn-db-reload");
-
-      try {
-        if (tombol) {
-          tombol.disabled = true;
-          tombol.innerText = "Memuat Database...";
-        }
-
-        tampilStatusDatabaseLite("Menghubungkan ke Spreadsheet. Tunggu sebentar...", "info");
-        bersihkanCacheDatabaseManual();
-
-        // Jalankan fungsi database yang tersedia pada versi program.
-        if (typeof ambilDatabase === "function") {
-          await ambilDatabase(true);
-        } else if (typeof loadDatabase === "function") {
-          await loadDatabase(true);
-        } else if (typeof muatDatabase === "function") {
-          await muatDatabase(true);
-        } else if (typeof bacaDatabase === "function") {
-          await bacaDatabase(true);
-        } else if (typeof loadExamData === "function") {
-          await loadExamData(true);
-        } else {
-          tampilStatusDatabaseLite("Database akan dimuat ulang melalui refresh halaman.", "info");
-          setTimeout(() => location.reload(), 700);
-          return;
-        }
-
-        tampilStatusDatabaseLite("Database berhasil dimuat. Silakan lanjutkan ujian.", "ok");
-      } catch (error) {
-        tampilStatusDatabaseLite("Database belum berhasil dimuat. Cek koneksi internet, lalu tekan Muat Database lagi.", "error");
-        console.log("Muat database manual gagal:", error);
-      } finally {
-        if (tombol) {
-          tombol.disabled = false;
-          tombol.innerText = "↻ Muat Database";
-        }
-      }
-    }
-
 
     function mulaiUjian() {
       examAktif = true;
@@ -1592,8 +1565,20 @@
       if (perangkatKemungkinanIphone()) tampilkanTombolDaruratFormLangsung();
 
       masukFullscreen();
+      setTimeout(kunciOrientasiUtama, 700);
 
       setTimeout(simpanUkuranAwalLayar, 1300);
+    }
+
+
+    async function kunciOrientasiUtama() {
+      try {
+        if (screen.orientation && screen.orientation.lock) {
+          await screen.orientation.lock(ORIENTASI_UTAMA_UJIAN);
+        }
+      } catch (e) {
+        // Browser boleh menolak. Sistem tetap berjalan dan memberi arahan.
+      }
     }
 
     function masukFullscreen() {
@@ -1605,12 +1590,14 @@
         elem.requestFullscreen()
           .then(() => {
             aktifkanToleransiPerubahanLayar(2500);
+            kunciOrientasiUtama();
             setTimeout(simpanUkuranAwalLayar, 1200);
           })
           .catch(() => {});
       } else if (elem.webkitRequestFullscreen) {
         elem.webkitRequestFullscreen();
         aktifkanToleransiPerubahanLayar(2500);
+        kunciOrientasiUtama();
         setTimeout(simpanUkuranAwalLayar, 1200);
       }
     }
@@ -2270,10 +2257,10 @@
         if (!examAktif || statusTerkunci) return;
         if (Date.now() < abaikanCekLayarSampai) return;
 
-        // Resize kecil sering terjadi karena keyboard/popup Google Form.
-        // Baru diproses sebagai orientasi jika benar-benar landscape.
-        if (layarLandscape()) {
-          prosesPerubahanOrientasiAman("Layar berubah ke mode landscape.");
+        // Default terbaik lapangan: Landscape.
+        // Portrait tidak langsung curang, tetapi diberi arahan/toleransi.
+        if (!layarLandscape()) {
+          prosesPerubahanOrientasiAman("Layar berubah ke mode portrait.");
         }
       });
     }
@@ -2292,16 +2279,17 @@
       orientationSedangToleransi = true;
       jumlahGangguanOrientasi++;
 
-      aktifkanToleransiPerubahanLayar(6000);
+      aktifkanToleransiPerubahanLayar(7000);
 
       const warning = document.getElementById("orientation-warning");
       if (warning) {
         warning.classList.add("force-show");
         warning.style.display = "block";
+        warning.innerText = "Putar HP ke posisi LANDSCAPE/MENDATAR. Jangan gunakan split screen saat ujian.";
       }
 
       tampilIndikator("Orientasi layar berubah");
-      tampilPeringatanZonaKanan("Kembalikan HP ke posisi POTRET. Perubahan orientasi tidak langsung dianggap curang, tetapi jika tetap landscape akan menjadi peringatan.");
+      tampilPeringatanZonaKanan("Putar HP ke posisi LANDSCAPE/MENDATAR. Jika tetap portrait/split screen, sistem akan memberi peringatan.");
 
       clearTimeout(orientationToleransiTimer);
 
@@ -2316,15 +2304,15 @@
 
         if (!examAktif || statusTerkunci) return;
 
-        if (layarLandscape() || layarMengecilMencurigakan()) {
+        if (!layarLandscape() || layarMengecilMencurigakan()) {
           beriPeringatanAtauKunci(
             "orientasi layar",
-            "Layar masih dalam posisi landscape/mengecil. Ujian harus dikerjakan dalam posisi potret dan tidak boleh split screen.",
-            `${alasan} Peserta tetap berada pada layar landscape atau tampilan mengecil setelah toleransi.`,
+            "Layar masih portrait/mengecil. Ujian harus dikerjakan dalam posisi landscape/mendatar dan tidak boleh split screen.",
+            `${alasan} Peserta tetap berada pada layar portrait atau tampilan mengecil setelah toleransi.`,
             2
           );
         }
-      }, 6000);
+      }, 7000);
     }
 
     function mulaiPantauPopupMengambang() {
@@ -2444,12 +2432,12 @@
       const rasioLebar = window.innerWidth / screenWidth;
       const rasioTinggi = window.innerHeight / screenHeight;
 
-      if (rasioLebar < 0.82) return true;
-      if (rasioTinggi < 0.58 && rasioLebar < 0.98) return true;
+      if (rasioLebar < 0.72) return true;
+      if (rasioTinggi < 0.46 && rasioLebar < 0.92) return true;
 
       if (window.visualViewport) {
         const vvLebar = window.visualViewport.width / screenWidth;
-        if (vvLebar < 0.82) return true;
+        if (vvLebar < 0.72) return true;
       }
 
       return false;
@@ -2768,6 +2756,67 @@
     // ============================================================
     // CEK BROWSER, POPUP PERINGATAN, SUARA RINGAN, JARINGAN, WAKE LOCK
     // ============================================================
+    
+    // ============================================================
+    // VERSI TERBAIK: CEK BROWSER & KESIAPAN SISWA
+    // ============================================================
+    function pilihBrowserUjian(browser) {
+      browserPilihanSiswa = browser;
+
+      ["chrome", "edge", "safari", "lain"].forEach(item => {
+        const el = document.getElementById(`browser-${item}`);
+        if (el) el.classList.toggle("aktif", item === browser);
+      });
+
+      const note = document.getElementById("browser-note");
+
+      if (note) {
+        if (browser === "chrome" || browser === "edge") {
+          note.innerHTML = "Browser disarankan. Silakan lanjut jika sudah menutup tab/aplikasi lain.";
+        } else if (browser === "safari") {
+          note.innerHTML = "Safari/iPhone bisa digunakan, tetapi jika Google Form/cookies bermasalah segera lapor pengawas.";
+        } else {
+          note.innerHTML = "Browser ini tidak disarankan. Lebih aman buka ulang link ujian di Chrome atau Edge.";
+        }
+      }
+
+      evaluasiTombolMulai();
+      updateChecklist();
+    }
+
+    function ubahKesiapanSiswa() {
+      const check = document.getElementById("siap-ujian-check");
+      siswaSiapUjian = !!(check && check.checked);
+      evaluasiTombolMulai();
+      updateChecklist();
+    }
+
+    function evaluasiTombolMulai() {
+      const btn = document.getElementById("btn-mulai");
+      if (!btn) return;
+
+      if (!databaseSiap || !linkGoogleForm) {
+        btn.disabled = true;
+        btn.innerText = "Memuat Ujian...";
+        return;
+      }
+
+      if (!browserPilihanSiswa) {
+        btn.disabled = true;
+        btn.innerText = "Pilih Browser Dulu";
+        return;
+      }
+
+      if (!siswaSiapUjian) {
+        btn.disabled = true;
+        btn.innerText = "Centang Kesiapan Dulu";
+        return;
+      }
+
+      btn.disabled = false;
+      btn.innerText = "Mulai Ujian Sekarang";
+    }
+
     function cekDukunganBrowser() {
       const pesan = [];
 
