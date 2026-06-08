@@ -3,17 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Cikpus CyberLock</title>
+  <title>Cikpus CyberLock - Versi Ketat Fullscreen</title>
   <link rel="manifest" href="manifest.webmanifest">
   <meta name="theme-color" content="#06101f">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="CyberLock X">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-	
-	<link rel="icon" type="image/png" href="/Tes/favicon.png?v=2">
-	<link rel="shortcut icon" type="image/png" href="/Tes/favicon.png?v=2">
-	<link rel="apple-touch-icon" href="/Tes/favicon.png?v=2">
 
   <link rel="preconnect" href="https://docs.google.com">
   <link rel="preconnect" href="https://accounts.google.com">
@@ -1024,6 +1020,70 @@
       }
     }
 
+
+    /* PATCH KETAT: overlay wajib fullscreen agar siswa tidak bisa lanjut saat keluar fullscreen */
+    #fullscreen-required-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 2147483600;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      background: rgba(6, 16, 31, .94);
+      color: white;
+      text-align: center;
+      pointer-events: auto;
+      touch-action: none;
+    }
+
+    .fullscreen-required-card {
+      width: min(92vw, 430px);
+      border: 2px solid #ef4444;
+      border-radius: 18px;
+      background: rgba(8, 14, 28, .98);
+      padding: 18px;
+      box-shadow: 0 0 28px rgba(239, 68, 68, .38);
+    }
+
+    .fullscreen-required-card h2 {
+      margin: 0 0 10px;
+      color: #ff6b6b;
+      font-size: clamp(18px, 5vw, 23px);
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .fullscreen-required-card p {
+      margin: 8px 0;
+      color: #fff3f3;
+      font-size: clamp(13px, 3.7vw, 15px);
+      line-height: 1.45;
+    }
+
+    .fullscreen-required-card button {
+      width: 100%;
+      margin-top: 12px;
+      border: none;
+      border-radius: 12px;
+      padding: 13px;
+      background: #ef4444;
+      color: white;
+      font-size: 14px;
+      font-weight: 900;
+      text-transform: uppercase;
+      touch-action: manipulation;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .fullscreen-required-card .mini-note {
+      margin-top: 10px;
+      color: #ffd0d0;
+      font-size: 11.5px;
+      line-height: 1.35;
+    }
+
   </style>
 </head>
 
@@ -1079,11 +1139,8 @@
       </div>
 
       <div class="small-note">
-        Jika soal tidak muncul saat ujian, gunakan tombol <b>Refresh Soal</b> atau lapor pengawas.
-	  </div>
-		<div class="small-note">
-        © 2026 ICT Cikpus
-    	</div>
+        Mode ujian wajib layar penuh. Jika keluar fullscreen, pindah tab, atau membuka aplikasi lain, sistem akan memberi peringatan.
+      </div>
     </div>
   </div>
 
@@ -1147,6 +1204,17 @@
   </div>
 
   <div id="network-status">Koneksi terputus. Jangan refresh halaman. Tunggu jaringan kembali stabil.</div>
+
+
+  <div id="fullscreen-required-overlay">
+    <div class="fullscreen-required-card">
+      <h2>Mode Ujian Belum Aman</h2>
+      <p>Sistem mendeteksi halaman ujian belum berada di layar penuh atau siswa keluar dari halaman ujian.</p>
+      <p>Untuk melanjutkan ujian, tekan tombol di bawah ini dan tetap berada di halaman ujian.</p>
+      <button type="button" onclick="aktifkanFullscreenDariOverlay()">Aktifkan Mode Ujian</button>
+      <div class="mini-note">Membuka tab/aplikasi lain, keluar dari fullscreen, atau berpindah halaman akan tercatat sebagai aktivitas mencurigakan.</div>
+    </div>
+  </div>
 
   <div id="lock-overlay">
     <div class="lock-panel">
@@ -1246,6 +1314,12 @@
     let guardGestureSudahDiproses = false;
     let tombolSelesaiAktif = false;
     let formLoadCount = 0;
+    let fullscreenWajibInterval = null;
+    let fullscreenPernahAktif = false;
+    let fullscreenOverlayTerakhir = 0;
+    let halamanHiddenSejak = 0;
+    let aktivitasKeluarHalamanTertunda = false;
+    let terakhirPeringatanKeluarHalaman = 0;
     let browserPilihanSiswa = "";
     let siswaSiapUjian = false;
     let pesanUjianSiapTerakhir = ""; 
@@ -1538,6 +1612,7 @@
       mulaiDurasiUjian();
       aktifkanAudioPeringatan();
       mulaiPantauJaringan();
+      mulaiPantauFullscreenWajib();
       aktifkanWakeLockRingan();
       aktifkanAudioPeringatan();
       mulaiPantauJaringan();
@@ -1571,13 +1646,144 @@
       if (perangkatKemungkinanIphone()) tampilkanTombolDaruratFormLangsung();
 
       masukFullscreen();
+      setTimeout(() => { if (fullscreenDidukung() && !fullscreenAktif()) tampilkanOverlayFullscreenWajib(); }, 1200);
       setTimeout(kunciOrientasiUtama, 700);
 
       setTimeout(simpanUkuranAwalLayar, 1300);
     }
 
 
-    async function kunciOrientasiUtama() {
+    async 
+    // ============================================================
+    // PATCH KETAT: FULLSCREEN WAJIB + DETEKSI PINDAH TAB
+    // ============================================================
+    function fullscreenDidukung() {
+      const elem = document.documentElement;
+      return !!(elem.requestFullscreen || elem.webkitRequestFullscreen);
+    }
+
+    function fullscreenAktif() {
+      return !!(document.fullscreenElement || document.webkitFullscreenElement);
+    }
+
+    function tampilkanOverlayFullscreenWajib() {
+      if (!examAktif || statusTerkunci) return;
+      if (!fullscreenDidukung()) return;
+
+      const overlay = document.getElementById("fullscreen-required-overlay");
+      if (overlay) overlay.style.display = "flex";
+      fullscreenOverlayTerakhir = Date.now();
+    }
+
+    function sembunyikanOverlayFullscreenWajib() {
+      const overlay = document.getElementById("fullscreen-required-overlay");
+      if (overlay) overlay.style.display = "none";
+    }
+
+    async function mintaFullscreenLangsungDariKlik() {
+      aktifkanToleransiPerubahanLayar(4500);
+
+      try {
+        const elem = document.documentElement;
+
+        if (elem.requestFullscreen) {
+          await elem.requestFullscreen();
+        } else if (elem.webkitRequestFullscreen) {
+          elem.webkitRequestFullscreen();
+        }
+
+        fullscreenPernahAktif = true;
+        sembunyikanOverlayFullscreenWajib();
+        setTimeout(kunciOrientasiUtama, 250);
+        setTimeout(simpanUkuranAwalLayar, 1000);
+      } catch (e) {
+        // Jika browser menolak, overlay akan meminta siswa menekan tombol lagi.
+        setTimeout(() => {
+          if (examAktif && !fullscreenAktif()) tampilkanOverlayFullscreenWajib();
+        }, 800);
+      }
+    }
+
+    async function aktifkanFullscreenDariOverlay() {
+      await mintaFullscreenLangsungDariKlik();
+
+      setTimeout(() => {
+        if (fullscreenAktif()) {
+          fullscreenPernahAktif = true;
+          sembunyikanOverlayFullscreenWajib();
+          aktifkanToleransiPerubahanLayar(3000);
+        } else {
+          tampilkanOverlayFullscreenWajib();
+        }
+      }, 700);
+    }
+
+    function mulaiPantauFullscreenWajib() {
+      if (fullscreenWajibInterval) clearInterval(fullscreenWajibInterval);
+
+      fullscreenWajibInterval = setInterval(() => {
+        if (!examAktif || statusTerkunci) return;
+        if (!fullscreenDidukung()) return;
+        if (Date.now() < abaikanCekLayarSampai || orientationSedangToleransi) return;
+
+        if (fullscreenAktif()) {
+          fullscreenPernahAktif = true;
+          sembunyikanOverlayFullscreenWajib();
+          return;
+        }
+
+        tampilkanOverlayFullscreenWajib();
+
+        // Jika sebelumnya sudah pernah fullscreen lalu keluar, catat sebagai aktivitas mencurigakan.
+        // Dibatasi jeda agar tidak menghitung berkali-kali setiap detik.
+        if (fullscreenPernahAktif && Date.now() - terakhirPeringatanKeluarHalaman > 5000) {
+          terakhirPeringatanKeluarHalaman = Date.now();
+          beriPeringatanAtauKunci(
+            "keluar fullscreen",
+            "Halaman ujian keluar dari layar penuh. Tetap berada di mode ujian dan jangan membuka tab/aplikasi lain.",
+            "Peserta keluar dari fullscreen saat ujian berlangsung.",
+            2
+          );
+        }
+      }, 1200);
+    }
+
+    function catatKeluarHalaman(alasan) {
+      if (!examAktif || statusTerkunci || sistemSedangUnlock) return;
+      if (refreshDiizinkanKarenaJaringan()) return;
+
+      aktivitasKeluarHalamanTertunda = true;
+      halamanHiddenSejak = Date.now();
+
+      try {
+        tulisLog(alasan);
+      } catch (e) {}
+    }
+
+    function prosesKembaliKeHalaman() {
+      if (!examAktif || statusTerkunci) return;
+
+      if (aktivitasKeluarHalamanTertunda) {
+        aktivitasKeluarHalamanTertunda = false;
+
+        if (Date.now() - terakhirPeringatanKeluarHalaman > 2500) {
+          terakhirPeringatanKeluarHalaman = Date.now();
+
+          beriPeringatanAtauKunci(
+            "pindah tab/aplikasi",
+            "Sistem mendeteksi kamu keluar dari halaman ujian atau berpindah tab/aplikasi. Tetap di halaman ujian sampai selesai.",
+            "Peserta berpindah tab/aplikasi atau keluar dari halaman ujian.",
+            2
+          );
+        }
+      }
+
+      if (fullscreenDidukung() && !fullscreenAktif()) {
+        tampilkanOverlayFullscreenWajib();
+      }
+    }
+
+    function kunciOrientasiUtama() {
       try {
         if (screen.orientation && screen.orientation.lock) {
           await screen.orientation.lock(ORIENTASI_UTAMA_UJIAN);
@@ -2153,6 +2359,37 @@
       }
     });
 
+
+    // PATCH KETAT: event tambahan untuk mendeteksi pindah tab/aplikasi.
+    document.addEventListener("visibilitychange", () => {
+      if (!examAktif || statusTerkunci) return;
+
+      if (document.hidden) {
+        catatKeluarHalaman("Halaman ujian menjadi hidden. Kemungkinan pindah tab/aplikasi.");
+        return;
+      }
+
+      prosesKembaliKeHalaman();
+    });
+
+    window.addEventListener("focus", () => {
+      prosesKembaliKeHalaman();
+    });
+
+    window.addEventListener("blur", () => {
+      if (!examAktif || statusTerkunci) return;
+
+      // Blur karena fokus masuk iframe Google Form masih diabaikan.
+      const iframe = document.getElementById("ujian-frame");
+      setTimeout(() => {
+        if (!examAktif || statusTerkunci) return;
+        if (document.activeElement === iframe) return;
+        if (document.hidden || !document.hasFocus()) {
+          catatKeluarHalaman("Browser kehilangan fokus. Kemungkinan membuka tab/aplikasi lain.");
+        }
+      }, 900);
+    });
+
     window.addEventListener("pagehide", () => {
       if (examAktif && !statusTerkunci && !sistemSedangUnlock) {
         if (refreshDiizinkanKarenaJaringan()) {
@@ -2187,17 +2424,18 @@
 
       if (Date.now() < abaikanCekLayarSampai || orientationSedangToleransi) return;
 
-      clearTimeout(popupToleransiTimer);
+      if (fullscreenDidukung() && !fullscreenAktif()) {
+        tampilkanOverlayFullscreenWajib();
 
-      popupToleransiTimer = setTimeout(() => {
-        if (!examAktif || statusTerkunci) return;
-
-        const fullscreenAktif = document.fullscreenElement || document.webkitFullscreenElement;
-
-        if (!fullscreenAktif) {
-          prosesPopupDenganToleransi("Keluar dari layar penuh atau popup sistem terdeteksi.");
+        if (fullscreenPernahAktif) {
+          beriPeringatanAtauKunci(
+            "keluar fullscreen",
+            "Halaman ujian keluar dari layar penuh. Aktifkan kembali mode ujian dan jangan membuka tab/aplikasi lain.",
+            "Peserta keluar dari fullscreen saat ujian berlangsung.",
+            2
+          );
         }
-      }, 2800);
+      }
     }
 
     
