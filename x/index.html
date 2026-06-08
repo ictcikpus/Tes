@@ -1097,6 +1097,137 @@ body.exam-mode.anti-ai-strict #anti-ai-iframe-guard.guard-on {
   }
 }
 
+  
+/* ============================================================
+   UPDATE GRID SOFT GUARD - TANPA ZONA PENGAWASAN KANAN
+   Tujuan:
+   - Zona pengawasan kanan dihilangkan sebagai zona pelanggaran.
+   - Iframe dilindungi dengan grid transparan.
+   - Tahan teks / salin / geser kiri-kanan pada grid hanya diberi arahan,
+     TIDAK masuk hitungan pelanggaran.
+   - Fullscreen, split screen, pindah tab/browser, popup/floating window tetap pelanggaran.
+   ============================================================ */
+
+/* Nonaktifkan zona kanan lama agar tidak menjadi pelanggaran */
+#right-touch-guard {
+  display: none !important;
+  pointer-events: none !important;
+}
+
+/* Nonaktifkan anti-ai guard lama agar tidak konflik */
+#anti-ai-iframe-guard {
+  display: none !important;
+  pointer-events: none !important;
+}
+
+/* Grid guard baru */
+#iframe-grid-soft-guard {
+  display: none;
+  position: fixed;
+  top: var(--topbar-height);
+  left: 0;
+  right: 0;
+  bottom: var(--zona-bawah-aman);
+  z-index: 982;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  touch-action: none;
+}
+
+/* Grid visual tipis. Tidak terlalu mengganggu soal. */
+#iframe-grid-soft-guard::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(0,255,170,.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,255,170,.07) 1px, transparent 1px);
+  background-size: 44px 44px;
+  opacity: .55;
+}
+
+body.exam-mode #iframe-grid-soft-guard.grid-on {
+  display: block;
+}
+
+/* Cell transparan untuk menangkap long press/copy pada sebagian area,
+   sementara celah antar-cell tetap bisa dipakai siswa memilih jawaban. */
+.grid-soft-cell {
+  position: absolute;
+  width: var(--grid-soft-cell-size, 10px);
+  height: var(--grid-soft-cell-size, 10px);
+  border-radius: 3px;
+  background: rgba(0,255,170,.012);
+  pointer-events: auto;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.grid-soft-cell:active {
+  background: rgba(0,255,170,.05);
+}
+
+#grid-soft-message {
+  display: none;
+  position: fixed;
+  left: 50%;
+  top: calc(var(--topbar-height) + 8px);
+  transform: translateX(-50%);
+  z-index: 1035;
+  max-width: min(92vw, 520px);
+  padding: 8px 11px;
+  border-radius: 11px;
+  background: rgba(6, 16, 31, .90);
+  color: #baffee;
+  border: 1px solid rgba(0,255,170,.40);
+  font-size: clamp(10.5px, 3vw, 12px);
+  font-weight: 800;
+  line-height: 1.35;
+  text-align: center;
+  pointer-events: none;
+  box-shadow: 0 6px 18px rgba(0,0,0,.22);
+}
+
+@media (max-width: 380px), (max-height: 680px) {
+  #iframe-grid-soft-guard::before {
+    background-size: 38px 38px;
+    opacity: .45;
+  }
+
+  .grid-soft-cell {
+    width: var(--grid-soft-cell-size, 8px);
+    height: var(--grid-soft-cell-size, 8px);
+  }
+
+  #grid-soft-message {
+    font-size: 10px;
+    padding: 7px 9px;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 520px) {
+  :root {
+    --zona-kanan: 0vw;
+    --zona-bawah-aman: clamp(80px, 24vh, 150px);
+  }
+
+  #iframe-grid-soft-guard::before {
+    background-size: 40px 40px;
+    opacity: .42;
+  }
+
+  #grid-soft-message {
+    top: calc(var(--topbar-height) + 4px);
+    font-size: 10px;
+    padding: 6px 8px;
+  }
+}
+
   </style>
 </head>
 
@@ -1146,7 +1277,7 @@ body.exam-mode.anti-ai-strict #anti-ai-iframe-guard.guard-on {
       </div>
 
       <div class="small-note">
-        Update responsive: pelindung teks soal otomatis mengecil di HP kecil/landscape agar siswa tetap mudah memilih jawaban dan menekan tombol Google Form.
+        Update Grid Soft Guard: zona pengawasan kanan dihilangkan. Area iframe dilindungi grid anti-salin/anti-AI tanpa menambah pelanggaran. Fullscreen, split screen, pindah tab/browser tetap pelanggaran.
       </div>
     </div>
   </div>
@@ -1188,6 +1319,10 @@ body.exam-mode.anti-ai-strict #anti-ai-iframe-guard.guard-on {
         Area teks soal dilindungi dari tekan lama / Ask AI.
       </div>
     </div>
+
+    
+    <div id="iframe-grid-soft-guard" aria-hidden="true"></div>
+    <div id="grid-soft-message">Jangan coba-coba curang. Menahan teks, salin, Search Google, atau Ask AI dicegah oleh sistem.</div>
 
     <div id="fullscreen-gate-overlay">
       <div class="fullscreen-gate-card">
@@ -3704,6 +3839,261 @@ body.exam-mode.anti-ai-strict #anti-ai-iframe-guard.guard-on {
   document.addEventListener("fullscreenchange", function () {
     if (ujianAktifSoftAntiCopy()) setTimeout(aktifkanSoftAntiCopy, 400);
   }, true);
+})();
+
+</script>
+<script>
+
+/* ============================================================
+   GRID SOFT GUARD - NO WARNING / NO VIOLATION
+   - Tidak memanggil beriPeringatanAtauKunci.
+   - Tidak menambah total pelanggaran.
+   - Hanya mencegah long press/copy/select pada grid cell dan menampilkan arahan.
+   - Fullscreen/split screen/tab tetap ditangani oleh sistem keamanan utama.
+   ============================================================ */
+(function () {
+  "use strict";
+
+  const GRID_GUARD_MODE = "soft"; // "soft" aktif, "off" mati
+  const GRID_SIZE_NORMAL = 44;
+  const GRID_SIZE_SMALL = 38;
+  const GRID_CELL_NORMAL = 10;
+  const GRID_CELL_SMALL = 8;
+
+  let gridBuiltFor = "";
+  let softMsgTimer = null;
+  let lastSoftMsg = 0;
+  let longTimer = null;
+  let startX = 0;
+  let startY = 0;
+  let startAt = 0;
+
+  function ujianAktifGrid() {
+    try {
+      return !!examAktif && !statusTerkunci;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function gridEl() {
+    return document.getElementById("iframe-grid-soft-guard");
+  }
+
+  function msgEl() {
+    return document.getElementById("grid-soft-message");
+  }
+
+  function tampilPesanGrid(teks, force = false) {
+    const now = Date.now();
+    if (!force && now - lastSoftMsg < 1800) return;
+
+    lastSoftMsg = now;
+
+    const el = msgEl();
+    if (!el) return;
+
+    el.textContent = teks;
+    el.style.display = "block";
+
+    clearTimeout(softMsgTimer);
+    softMsgTimer = setTimeout(() => {
+      el.style.display = "none";
+    }, 2600);
+
+    try {
+      tulisLog("Grid soft guard: " + teks);
+    } catch (e) {}
+  }
+
+  function ukuranGrid() {
+    const kecil = window.innerWidth <= 380 || window.innerHeight <= 680;
+    return {
+      step: kecil ? GRID_SIZE_SMALL : GRID_SIZE_NORMAL,
+      cell: kecil ? GRID_CELL_SMALL : GRID_CELL_NORMAL
+    };
+  }
+
+  function buatGridCells() {
+    const guard = gridEl();
+    if (!guard || GRID_GUARD_MODE === "off") return;
+
+    const rect = guard.getBoundingClientRect();
+    const u = ukuranGrid();
+    const key = `${Math.round(rect.width)}x${Math.round(rect.height)}-${u.step}-${u.cell}`;
+
+    if (gridBuiltFor === key && guard.children.length > 0) return;
+
+    gridBuiltFor = key;
+    guard.innerHTML = "";
+    guard.style.setProperty("--grid-soft-cell-size", `${u.cell}px`);
+
+    const cols = Math.ceil(rect.width / u.step);
+    const rows = Math.ceil(rect.height / u.step);
+
+    /* Cell ditempatkan pada titik grid/intersection dan sebagian garis.
+       Celah besar tetap terbuka agar siswa bisa memilih jawaban/input nama/kirim. */
+    for (let r = 0; r <= rows; r++) {
+      for (let c = 0; c <= cols; c++) {
+        const cell = document.createElement("div");
+        cell.className = "grid-soft-cell";
+        cell.style.left = `${Math.max(0, c * u.step - u.cell / 2)}px`;
+        cell.style.top = `${Math.max(0, r * u.step - u.cell / 2)}px`;
+        guard.appendChild(cell);
+      }
+    }
+
+    pasangCellListener();
+  }
+
+  function bersihkanTimer() {
+    if (longTimer) {
+      clearTimeout(longTimer);
+      longTimer = null;
+    }
+  }
+
+  function softPrevent(event, pesan) {
+    event.preventDefault();
+    event.stopPropagation();
+    tampilPesanGrid(pesan);
+  }
+
+  function pasangCellListener() {
+    const guard = gridEl();
+    if (!guard) return;
+
+    const cells = guard.querySelectorAll(".grid-soft-cell");
+    cells.forEach(cell => {
+      if (cell.dataset.ready === "1") return;
+      cell.dataset.ready = "1";
+
+      cell.addEventListener("touchstart", function (event) {
+        if (!ujianAktifGrid()) return;
+
+        const t = event.touches && event.touches[0];
+        if (!t) return;
+
+        startX = t.clientX;
+        startY = t.clientY;
+        startAt = Date.now();
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        bersihkanTimer();
+        longTimer = setTimeout(() => {
+          tampilPesanGrid("Jangan coba-coba curang. Menahan teks soal untuk Search Google / Ask AI dicegah sistem.", true);
+        }, 620);
+      }, { passive: false });
+
+      cell.addEventListener("touchmove", function (event) {
+        if (!ujianAktifGrid()) return;
+
+        const t = event.touches && event.touches[0];
+        if (!t) return;
+
+        const dx = Math.abs(t.clientX - startX);
+        const dy = Math.abs(t.clientY - startY);
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        if (dx > 26 && dx > dy * 1.4) {
+          bersihkanTimer();
+          tampilPesanGrid("Jangan coba-coba curang. Geser kiri/kanan pada area soal dicegah sistem.");
+          return;
+        }
+
+        if (dy > 24) {
+          bersihkanTimer();
+          tampilPesanGrid("Gunakan celah area Google Form untuk scroll dan menjawab soal. Area grid melindungi teks dari salin/AI.");
+        }
+      }, { passive: false });
+
+      cell.addEventListener("touchend", function (event) {
+        if (!ujianAktifGrid()) return;
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        const durasi = Date.now() - startAt;
+        bersihkanTimer();
+
+        if (durasi > 520) {
+          tampilPesanGrid("Jangan coba-coba curang. Menahan teks soal, salin, Search Google, dan Ask AI dicegah sistem.", true);
+        }
+      }, { passive: false });
+
+      cell.addEventListener("contextmenu", function (event) {
+        if (!ujianAktifGrid()) return;
+        softPrevent(event, "Jangan coba-coba curang. Menu salin/Search Google/Ask AI dicegah sistem.");
+      }, true);
+
+      cell.addEventListener("selectstart", function (event) {
+        if (!ujianAktifGrid()) return;
+        softPrevent(event, "Jangan coba-coba curang. Seleksi teks soal dicegah sistem.");
+      }, true);
+
+      cell.addEventListener("copy", function (event) {
+        if (!ujianAktifGrid()) return;
+        softPrevent(event, "Jangan coba-coba curang. Salin teks soal dicegah sistem.");
+      }, true);
+    });
+  }
+
+  function aktifkanGridGuard() {
+    const guard = gridEl();
+    if (!guard) return;
+
+    if (GRID_GUARD_MODE === "off") {
+      guard.classList.remove("grid-on");
+      return;
+    }
+
+    guard.classList.add("grid-on");
+    buatGridCells();
+  }
+
+  window.cikpusGridSoftGuardAktif = aktifkanGridGuard;
+
+  /* Override fungsi anti-AI lama kalau masih ada, agar tidak masuk pelanggaran. */
+  window.peringatkanAntiAI = function (alasan) {
+    tampilPesanGrid("Jangan coba-coba curang. Menahan teks, salin, Search Google, atau Ask AI dicegah sistem.", true);
+    try {
+      tulisLog("Anti-copy soft tanpa pelanggaran: " + (alasan || "dicegah"));
+    } catch (e) {}
+  };
+
+  function pasangGridRutin() {
+    if (ujianAktifGrid()) aktifkanGridGuard();
+  }
+
+  setInterval(pasangGridRutin, 1200);
+
+  window.addEventListener("resize", function () {
+    gridBuiltFor = "";
+    setTimeout(pasangGridRutin, 350);
+  }, true);
+
+  window.addEventListener("orientationchange", function () {
+    gridBuiltFor = "";
+    setTimeout(pasangGridRutin, 800);
+  }, true);
+
+  document.addEventListener("fullscreenchange", function () {
+    setTimeout(pasangGridRutin, 450);
+  }, true);
+
+  try {
+    const oldMulaiUjian = typeof mulaiUjian === "function" ? mulaiUjian : null;
+    if (oldMulaiUjian) {
+      window.mulaiUjian = function () {
+        oldMulaiUjian();
+        setTimeout(aktifkanGridGuard, 500);
+      };
+    }
+  } catch (e) {}
 })();
 
 </script>
