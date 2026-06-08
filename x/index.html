@@ -1274,6 +1274,59 @@ body.strict-focus-active #fullscreen-gate-overlay {
   pointer-events: auto;
 }
 
+  
+/* ============================================================
+   UPDATE DENSE STAGGERED GRID
+   Grid dibuat lebih rapat dan berpola selang-seling agar celah long touch
+   lebih kecil dibanding grid titik biasa.
+   ============================================================ */
+
+:root {
+  --grid-soft-cell-size: 14px;
+}
+
+/* Cell dibuat sedikit oval agar area tangkap long touch lebih besar,
+   tetapi masih menyisakan celah untuk klik jawaban. */
+.grid-soft-cell {
+  width: var(--grid-soft-cell-size, 14px) !important;
+  height: var(--grid-soft-cell-size, 14px) !important;
+  border-radius: 999px !important;
+  background: rgba(0,255,170,.020) !important;
+  box-shadow: 0 0 0 1px rgba(0,255,170,.030);
+}
+
+/* Cell tambahan staggered dibuat samar */
+.grid-soft-cell.mid {
+  background: rgba(0,255,170,.016) !important;
+}
+
+#iframe-grid-soft-guard::before {
+  background-size: 18px 18px !important;
+  opacity: .35 !important;
+}
+
+@media (max-width: 380px), (max-height: 680px) {
+  :root {
+    --grid-soft-cell-size: 12px;
+  }
+
+  #iframe-grid-soft-guard::before {
+    background-size: 16px 16px !important;
+    opacity: .30 !important;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 520px) {
+  :root {
+    --grid-soft-cell-size: 12px;
+  }
+
+  #iframe-grid-soft-guard::before {
+    background-size: 16px 16px !important;
+    opacity: .28 !important;
+  }
+}
+
   </style>
 </head>
 
@@ -1323,7 +1376,7 @@ body.strict-focus-active #fullscreen-gate-overlay {
       </div>
 
       <div class="small-note">
-        Update Strict Focus: keluar fullscreen, split screen, dan pindah tab/browser langsung mengunci ujian. Popup/floating window dan geser kiri-kanan diberi peringatan 1x, jika terulang langsung terkunci.
+        Update Dense Grid: grid dibuat lebih rapat dan selang-seling untuk mengurangi celah Ask AI/Search Google. Jika terlalu sulit klik jawaban, longgarkan nilai GRID_SIZE dan GRID_CELL.
       </div>
     </div>
   </div>
@@ -3904,10 +3957,11 @@ body.strict-focus-active #fullscreen-gate-overlay {
   "use strict";
 
   const GRID_GUARD_MODE = "soft"; // "soft" aktif, "off" mati
-  const GRID_SIZE_NORMAL = 20;
-  const GRID_SIZE_SMALL = 10;
-  const GRID_CELL_NORMAL = 10;
-  const GRID_CELL_SMALL = 8;
+  const GRID_SIZE_NORMAL = 18;
+  const GRID_SIZE_SMALL = 16;
+  const GRID_CELL_NORMAL = 14;
+  const GRID_CELL_SMALL = 12;
+  const GRID_EXTRA_MIDPOINTS = true;
 
   let gridBuiltFor = "";
   let softMsgTimer = null;
@@ -3982,13 +4036,33 @@ body.strict-focus-active #fullscreen-gate-overlay {
 
     /* Cell ditempatkan pada titik grid/intersection dan sebagian garis.
        Celah besar tetap terbuka agar siswa bisa memilih jawaban/input nama/kirim. */
+    function tambahCell(x, y, kelas = "") {
+      const cell = document.createElement("div");
+      cell.className = "grid-soft-cell" + (kelas ? " " + kelas : "");
+      cell.style.left = `${Math.max(0, x - u.cell / 2)}px`;
+      cell.style.top = `${Math.max(0, y - u.cell / 2)}px`;
+      guard.appendChild(cell);
+    }
+
     for (let r = 0; r <= rows; r++) {
       for (let c = 0; c <= cols; c++) {
-        const cell = document.createElement("div");
-        cell.className = "grid-soft-cell";
-        cell.style.left = `${Math.max(0, c * u.step - u.cell / 2)}px`;
-        cell.style.top = `${Math.max(0, r * u.step - u.cell / 2)}px`;
-        guard.appendChild(cell);
+        const x = c * u.step;
+        const y = r * u.step;
+
+        // Cell utama pada titik grid
+        tambahCell(x, y);
+
+        // Cell tambahan selang-seling untuk memperkecil celah long touch
+        if (GRID_EXTRA_MIDPOINTS && r < rows && c < cols) {
+          tambahCell(x + u.step / 2, y + u.step / 2, "mid");
+
+          // Tambahan horizontal/vertical midpoint secara berselang agar tidak terlalu menutup jawaban
+          if ((r + c) % 2 === 0) {
+            tambahCell(x + u.step / 2, y, "mid");
+          } else {
+            tambahCell(x, y + u.step / 2, "mid");
+          }
+        }
       }
     }
 
