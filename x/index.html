@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Cikpus CyberLock</title>
+  <title>Cikpus CyberLock - Update Cek Browser</title>
   <link rel="manifest" href="manifest.webmanifest">
   <meta name="theme-color" content="#06101f">
   <meta name="mobile-web-app-capable" content="yes">
@@ -11,9 +11,9 @@
   <meta name="apple-mobile-web-app-title" content="CyberLock X">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-  <link rel="icon" type="image/png" href="/Tes/favicon.png?v=2">
-  <link rel="shortcut icon" type="image/png" href="/Tes/favicon.png?v=2">
-  <link rel="apple-touch-icon" href="/Tes/favicon.png?v=2">
+<link rel="icon" type="image/png" href="/Tes/favicon.png?v=2">
+<link rel="shortcut icon" type="image/png" href="/Tes/favicon.png?v=2">
+<link rel="apple-touch-icon" href="/Tes/favicon.png?v=2">
   
   <link rel="preconnect" href="https://docs.google.com">
   <link rel="preconnect" href="https://accounts.google.com">
@@ -26,9 +26,9 @@
     }
 
     :root {
-      --zona-kanan: 30vw;
-      --zona-bawah-aman: clamp(70px, 18vh, 155px);
-      --topbar-height: clamp(40px, 7.5vh, 54px);
+      --zona-kanan: 50vw;
+      --zona-bawah-aman: clamp(190px, 32vh, 360px);
+      --topbar-height: clamp(50px, 7vh, 60px);
       --font-topbar: clamp(7.5px, 1.95vw, 10.5px);
     }
 
@@ -922,170 +922,104 @@
     }
 
 
-    /* VERSI TERBAIK LAPANGAN: tampilan awal ringkas agar siswa tidak bingung */
-    .simple-rules {
-      margin: 12px 0;
-      padding: 12px;
-      border-radius: 12px;
-      background: rgba(0, 255, 170, .08);
-      border: 1px solid rgba(0, 255, 170, .55);
-      color: #eafff8;
-      text-align: left;
-      font-size: clamp(12px, 3.3vw, 14px);
-      line-height: 1.55;
+    /* CEK BROWSER SEBELUM MULAI UJIAN */
+    #browser-check-box {
+      border: 1px solid rgba(0, 255, 170, .28);
+      background: rgba(0, 255, 170, .075);
     }
 
-    .simple-rules b {
-      color: #00ffaa;
-    }
-
-    .browser-choice-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
+    .browser-detected {
       margin-top: 8px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      background: rgba(255,255,255,.07);
+      color: #d8fff4;
+      font-size: clamp(11px, 3.2vw, 13px);
+      line-height: 1.45;
     }
 
-    .browser-choice {
-      border: 1px solid rgba(255,255,255,.20);
+    .browser-options {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .browser-option-btn {
+      border: 1px solid rgba(255,255,255,.18);
       border-radius: 10px;
-      padding: 9px;
+      padding: 9px 8px;
       background: rgba(255,255,255,.06);
-      color: white;
-      font-size: 12px;
+      color: #ffffff;
+      font-size: clamp(10px, 3vw, 12px);
       font-weight: 800;
       text-align: center;
       touch-action: manipulation;
       user-select: none;
       -webkit-user-select: none;
+      -webkit-touch-callout: none;
     }
 
-    .browser-choice.aktif {
-      border-color: #00ffaa;
-      background: rgba(0,255,170,.14);
+    .browser-option-btn.selected.good {
+      border-color: rgba(0,255,170,.75);
+      background: rgba(0,255,170,.18);
       color: #baffee;
     }
 
-    .ready-check {
-      margin: 12px 0;
-      padding: 12px;
-      border-radius: 12px;
-      background: rgba(255, 193, 7, .10);
-      border: 1px solid rgba(255, 193, 7, .55);
-      color: #fff1bf;
-      text-align: left;
-      font-size: clamp(12px, 3.3vw, 14px);
-      line-height: 1.45;
+    .browser-option-btn.selected.warn {
+      border-color: rgba(251,191,36,.80);
+      background: rgba(251,191,36,.16);
+      color: #ffe08a;
     }
 
-    .ready-check label {
-      display: flex;
-      align-items: flex-start;
-      gap: 9px;
-      cursor: pointer;
+    .browser-option-btn.selected.bad {
+      border-color: rgba(239,68,68,.85);
+      background: rgba(239,68,68,.17);
+      color: #ffd1d1;
     }
 
-    .ready-check input {
-      width: 18px;
-      height: 18px;
-      margin-top: 1px;
-      flex: 0 0 auto;
-    }
-
-    .compact-note {
-      margin-top: 8px;
-      color: #a8c6d6;
-      font-size: 11.5px;
-      line-height: 1.4;
-      text-align: left;
-    }
-
-    /* Landscape adalah mode utama ujian */
-    @media (orientation: landscape) {
-      :root {
-        --zona-kanan: 30vw;
-        --zona-bawah-aman: clamp(62px, 16vh, 145px);
-        --topbar-height: clamp(38px, 8vh, 52px);
-        --font-topbar: clamp(7px, 1.45vw, 10px);
-      }
-
-      #topbar {
-        grid-template-columns: 23% 1fr 36%;
-      }
-
-      #right-touch-guard::after {
-        top: 38%;
-      }
-    }
-
-    @media (orientation: portrait) {
-      #orientation-warning.force-show {
-        display: block;
-      }
-    }
-
-
-    /* PATCH KETAT: overlay wajib fullscreen agar siswa tidak bisa lanjut saat keluar fullscreen */
-    #fullscreen-required-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      z-index: 2147483600;
-      align-items: center;
-      justify-content: center;
-      padding: 18px;
-      background: rgba(6, 16, 31, .94);
-      color: white;
-      text-align: center;
-      pointer-events: auto;
-      touch-action: none;
-    }
-
-    .fullscreen-required-card {
-      width: min(92vw, 430px);
-      border: 2px solid #ef4444;
-      border-radius: 18px;
-      background: rgba(8, 14, 28, .98);
-      padding: 18px;
-      box-shadow: 0 0 28px rgba(239, 68, 68, .38);
-    }
-
-    .fullscreen-required-card h2 {
-      margin: 0 0 10px;
-      color: #ff6b6b;
-      font-size: clamp(18px, 5vw, 23px);
-      font-weight: 900;
-      text-transform: uppercase;
-    }
-
-    .fullscreen-required-card p {
-      margin: 8px 0;
-      color: #fff3f3;
-      font-size: clamp(13px, 3.7vw, 15px);
-      line-height: 1.45;
-    }
-
-    .fullscreen-required-card button {
-      width: 100%;
-      margin-top: 12px;
-      border: none;
-      border-radius: 12px;
-      padding: 13px;
-      background: #ef4444;
-      color: white;
-      font-size: 14px;
-      font-weight: 900;
-      text-transform: uppercase;
-      touch-action: manipulation;
-      user-select: none;
-      -webkit-user-select: none;
-    }
-
-    .fullscreen-required-card .mini-note {
+    #browser-status-box {
       margin-top: 10px;
-      color: #ffd0d0;
-      font-size: 11.5px;
-      line-height: 1.35;
+      display: none;
+      padding: 10px;
+      border-radius: 10px;
+      font-size: clamp(11px, 3.2vw, 13px);
+      line-height: 1.45;
+      font-weight: 700;
+    }
+
+    #browser-status-box.good {
+      display: block;
+      background: rgba(0,255,170,.12);
+      color: #baffee;
+      border: 1px solid rgba(0,255,170,.45);
+    }
+
+    #browser-status-box.warn {
+      display: block;
+      background: rgba(251,191,36,.13);
+      color: #ffe08a;
+      border: 1px solid rgba(251,191,36,.55);
+    }
+
+    #browser-status-box.bad {
+      display: block;
+      background: rgba(239,68,68,.13);
+      color: #ffd1d1;
+      border: 1px solid rgba(239,68,68,.55);
+    }
+
+    .browser-open-note {
+      margin-top: 8px;
+      font-size: clamp(10px, 3vw, 12px);
+      color: #cbd5e1;
+      line-height: 1.4;
+    }
+
+    @media (max-width: 380px) {
+      .browser-options {
+        grid-template-columns: 1fr;
+      }
     }
 
   </style>
@@ -1096,38 +1030,63 @@
     <div class="panel" id="panel-konten">
       <h1 class="main-title">CIKPUS CYBERLOCK</h1>
       <div class="anti-cheat-title">Ujian Anti Curang !</div>
-      <div class="sub-title">MODE LANDSCAPE - GOOGLE FORM SECURE</div>
+      <div class="sub-title">KELAS X - GOOGLE FORM SECURE</div>
 
-      <div class="simple-rules">
-        <b>Sebelum mulai ujian:</b><br/>
-        1. Gunakan <b>Chrome</b> atau <b>Edge</b> terbaru.<br/>
-        2. Putar HP ke posisi <b>landscape/mendatar</b>.<br/>
-        3. Tutup semua tab dan aplikasi lain.<br/>
-        4. Izinkan kamera jika diminta.<br/>
-        5. Kerjakan soal dengan jujur sampai selesai.
+       <div class="alert-box">
+        <b>PERINGATAN UJIAN:</b><br>
+        1. Gunakan 1 smartphone dan pastikan login email Google sebelum mulai.<br>
+        2. Isi semua petanyaan dengan benar, jujur dan tidak menyontek.<br>
+        3. Gunakan hanya bagian kiri layar untuk scroll dan menjawab soal.<br>
+        4. Setengah kanan layar adalah zona pengawasan. Sentuhan ringan tidak langsung dihitung, tetapi sentuhan/gerakan berulang akan menjadi peringatan. Bagian bawah layar diperluas untuk tombol Google Form.<br>
+        5. Tombol Selesai akan muncul saat semua soal telah dikerjakan atau ujian berjalan 30 menit.<br>6. Untuk HP lama, gunakan Chrome/Edge terbaru, matikan hemat baterai, dan atur layar mati otomatis minimal 10–30 menit.
       </div>
 
-      <div class="form-group">
-        <label>Browser yang digunakan</label>
-        <div class="browser-choice-grid">
-          <button type="button" class="browser-choice" id="browser-chrome" onclick="pilihBrowserUjian('chrome')">Chrome</button>
-          <button type="button" class="browser-choice" id="browser-edge" onclick="pilihBrowserUjian('edge')">Edge</button>
-          <button type="button" class="browser-choice" id="browser-safari" onclick="pilihBrowserUjian('safari')">Safari / iPhone</button>
-          <button type="button" class="browser-choice" id="browser-lain" onclick="pilihBrowserUjian('lain')">Browser Lain</button>
+      <div class="info-box">
+		<b>PERHATIAN:</b><br>
+		Sistem ini memantau kamu dari kamera, layar, tab/aplikasi dan gerakan jari yang dilakukan. Aktivitas mencurigakan akan diberi peringatan bertingkat: 1x muncul peringatan, 2x muncul peringatan disertai bunyi singkat, dan 3x aktivitas mencurigakan akan mengunci ujian otomatis. Kerjakan dengan jujur, karena hanya pengawas yang dapat membuka kunci Ujian.
+		</div>
+
+
+      <div class="info-box" id="compat-box">
+        <b>CEK PERANGKAT:</b><br>
+        Gunakan <b>Chrome/Edge terbaru</b>. Minimal disarankan Chrome/Edge <b>84+</b>, rekomendasi <b>100+</b>.
+        Hindari browser bawaan HP lama, UC Browser, Opera Mini, dan membuka link dari WhatsApp/Instagram.
+      </div>
+
+
+      <div class="info-box" id="iphone-cookie-note">
+        <b>Catatan iPhone:</b><br>
+        Jika Google Form meminta login/cookies dan tidak terbuka di iPhone, gunakan Chrome/Edge terbaru. Jika tetap bermasalah, pengawas dapat memakai tombol darurat Form langsung dengan kode rahasia.
+      </div>
+
+      
+      <div class="info-box" id="browser-check-box">
+        <b>CEK BROWSER UJIAN:</b><br>
+        Pilih browser yang sedang digunakan sebelum mulai ujian. Sistem lebih stabil memakai <b>Google Chrome</b> atau <b>Microsoft Edge</b> terbaru.
+
+        <div class="browser-detected" id="browser-detected-box">
+          Browser terdeteksi: memeriksa perangkat...
         </div>
-        <div class="compact-note" id="browser-note">Pilih browser terlebih dahulu. Chrome/Edge paling disarankan.</div>
+
+        <div class="browser-options">
+          <button type="button" class="browser-option-btn" data-browser="chrome" onclick="pilihBrowserUjian('chrome')">Google Chrome</button>
+          <button type="button" class="browser-option-btn" data-browser="edge" onclick="pilihBrowserUjian('edge')">Microsoft Edge</button>
+          <button type="button" class="browser-option-btn" data-browser="safari" onclick="pilihBrowserUjian('safari')">Safari / iPhone</button>
+          <button type="button" class="browser-option-btn" data-browser="classroom" onclick="pilihBrowserUjian('classroom')">Classroom / WhatsApp / Aplikasi</button>
+          <button type="button" class="browser-option-btn" data-browser="default" onclick="pilihBrowserUjian('default')">Browser Bawaan HP</button>
+          <button type="button" class="browser-option-btn" data-browser="other" onclick="pilihBrowserUjian('other')">Browser Lain</button>
+        </div>
+
+        <div id="browser-status-box"></div>
+
+        <div class="browser-open-note">
+          Jika link terbuka di dalam aplikasi, pilih menu titik tiga lalu buka di <b>Chrome</b> atau <b>Edge</b>. Jangan memakai UC Browser, Opera Mini, atau browser bawaan HP lama.
+        </div>
       </div>
 
       <div class="form-group">
         <label for="peserta-input">Nama dan Kelas</label>
         <input id="peserta-input" class="form-control" type="text" placeholder="Contoh: Ahmad - XII TKRO 1" autocomplete="off" />
-      </div>
-
-      <div class="ready-check">
-        <label>
-          <input type="checkbox" id="siap-ujian-check" onchange="ubahKesiapanSiswa()" />
-          <span>Saya sudah menutup tab/aplikasi lain dan siap mengikuti ujian dengan jujur.</span>
-        </label>
       </div>
 
       <div class="status-text" id="status-text">Menghubungkan ke Google Spreadsheet...</div>
@@ -1139,11 +1098,11 @@
       </div>
 
       <div class="checklist" id="checklist-status">
-        Status: Database belum siap • Pilih browser • Centang kesiapan
+        Status: Database belum siap • Kamera belum aktif
       </div>
 
       <div class="small-note">
-        Mode ujian wajib layar penuh. Jika keluar fullscreen, pindah tab, atau membuka aplikasi lain, sistem akan memberi peringatan.
+        Update terbaru: siswa wajib memilih browser sebelum mulai ujian. Chrome/Edge disarankan, Safari/iPhone boleh dengan catatan, browser bawaan/di dalam aplikasi diarahkan buka ulang di Chrome/Edge.
       </div>
     </div>
   </div>
@@ -1178,7 +1137,7 @@
       ></iframe>
     </div>
 
-    <div id="orientation-warning">Putar HP ke posisi LANDSCAPE/MENDATAR. Jangan gunakan split screen saat ujian.</div>
+    <div id="orientation-warning">Kembalikan HP ke posisi POTRET. Jangan gunakan landscape/split screen saat ujian.</div>
     <button id="iframe-refresh-quick-btn" type="button" onclick="reloadIframeSoalMacet()" title="Refresh soal jika Google Form macet">↻ Refresh Soal</button>
     <div id="right-touch-guard"></div>
     <div id="bottom-safe-note">Area bawah aman untuk tombol Google Form</div>
@@ -1208,17 +1167,6 @@
   </div>
 
   <div id="network-status">Koneksi terputus. Jangan refresh halaman. Tunggu jaringan kembali stabil.</div>
-
-
-  <div id="fullscreen-required-overlay">
-    <div class="fullscreen-required-card">
-      <h2>Mode Ujian Belum Aman</h2>
-      <p>Sistem mendeteksi halaman ujian belum berada di layar penuh atau siswa keluar dari halaman ujian.</p>
-      <p>Untuk melanjutkan ujian, tekan tombol di bawah ini dan tetap berada di halaman ujian.</p>
-      <button type="button" onclick="aktifkanFullscreenDariOverlay()">Aktifkan Mode Ujian</button>
-      <div class="mini-note">Membuka tab/aplikasi lain, keluar dari fullscreen, atau berpindah halaman akan tercatat sebagai aktivitas mencurigakan.</div>
-    </div>
-  </div>
 
   <div id="lock-overlay">
     <div class="lock-panel">
@@ -1251,8 +1199,7 @@
     // Kamera dibuat ringan agar lebih cocok untuk banyak tipe HP/browser.
     const CAMERA_TIMEOUT = 8000;
     const CAMERA_FAIL_LIMIT = 3;
-    const TAMPILKAN_PREVIEW_KAMERA = false;
-    const ORIENTASI_UTAMA_UJIAN = "landscape"; // false = kamera tetap aktif, tapi preview video tidak dirender agar HP lama lebih ringan
+    const TAMPILKAN_PREVIEW_KAMERA = false; // false = kamera tetap aktif, tapi preview video tidak dirender agar HP lama lebih ringan
     const BATAS_PERINGATAN_BERTINGKAT = 2; // 1x peringatan, 2x peringatan + bunyi, 3x terkunci untuk jenis yang sama
     const BATAS_TOTAL_AKTIVITAS_MENCURIGAKAN = 3; // total aktivitas mencurigakan apa pun, 3x terkunci // 1x peringatan, 2x peringatan + bunyi, 3x terkunci
 
@@ -1318,15 +1265,10 @@
     let guardGestureSudahDiproses = false;
     let tombolSelesaiAktif = false;
     let formLoadCount = 0;
-    let fullscreenWajibInterval = null;
-    let fullscreenPernahAktif = false;
-    let fullscreenOverlayTerakhir = 0;
-    let halamanHiddenSejak = 0;
-    let aktivitasKeluarHalamanTertunda = false;
-    let terakhirPeringatanKeluarHalaman = 0;
-    let browserPilihanSiswa = "";
-    let siswaSiapUjian = false;
-    let pesanUjianSiapTerakhir = ""; 
+    let browserUjianDipilih = false;
+    let browserUjianStatus = "belum";
+    let browserUjianLabel = "";
+    let pesanSiapDatabaseTerakhir = "";
     let audioContextPeringatan = null;
     let audioSudahDiaktifkan = false;
     let jaringanTerputus = false;
@@ -1353,6 +1295,7 @@
     window.addEventListener("load", async () => {
       mulaiJamTanggal();
       cekDukunganBrowser();
+      tampilkanDeteksiBrowserAwal();
       siapkanKomunikasiAntarTab();
       updateChecklist();
 
@@ -1517,6 +1460,8 @@
       linkGoogleForm = "";
       namaMapel = "";
 
+      pesanSiapDatabaseTerakhir = "";
+
       const btn = document.getElementById("btn-mulai");
       if (btn) {
         btn.disabled = true;
@@ -1535,10 +1480,10 @@
     }
 
     function aktifkanTombolMulai(pesan) {
-      pesanUjianSiapTerakhir = pesan || "";
-      ubahStatus(pesan);
-      evaluasiTombolMulai();
+      pesanSiapDatabaseTerakhir = pesan || "";
+      ubahStatus(pesanSiapDatabaseTerakhir);
       updateChecklist();
+      updateKesiapanTombolMulai();
     }
 
     // ============================================================
@@ -1552,24 +1497,24 @@
         return;
       }
 
-      if (!browserPilihanSiswa) {
+      if (!databaseSiap || !linkGoogleForm) {
+        alert("Database ujian belum siap. Klik Muat Ulang Database atau tunggu beberapa saat.");
+        return;
+      }
+
+      if (!browserUjianDipilih) {
         alert("Pilih browser yang digunakan terlebih dahulu.");
         return;
       }
 
-      if (!siswaSiapUjian) {
-        alert("Centang pernyataan kesiapan terlebih dahulu. Pastikan tab dan aplikasi lain sudah ditutup.");
+      if (browserUjianStatus === "bad") {
+        alert("Browser yang dipilih tidak disarankan. Buka ulang link ujian menggunakan Google Chrome atau Microsoft Edge.");
         return;
       }
 
-      if (browserPilihanSiswa === "lain") {
-        const lanjut = confirm("Browser ini tidak disarankan. Untuk hasil terbaik gunakan Chrome atau Edge. Tetap lanjut?");
+      if (browserUjianStatus === "warn") {
+        const lanjut = confirm("Browser ini bisa digunakan, tetapi mungkin memiliki kendala pada kamera, cookies, fullscreen, atau Google Form. Lanjutkan ujian?");
         if (!lanjut) return;
-      }
-
-      if (!databaseSiap || !linkGoogleForm) {
-        alert("Database ujian belum siap. Klik Muat Ulang Database atau tunggu beberapa saat.");
-        return;
       }
 
       const sesiAktif = bacaSesiAktif();
@@ -1616,7 +1561,6 @@
       mulaiDurasiUjian();
       aktifkanAudioPeringatan();
       mulaiPantauJaringan();
-      mulaiPantauFullscreenWajib();
       aktifkanWakeLockRingan();
       aktifkanAudioPeringatan();
       mulaiPantauJaringan();
@@ -1650,151 +1594,8 @@
       if (perangkatKemungkinanIphone()) tampilkanTombolDaruratFormLangsung();
 
       masukFullscreen();
-      setTimeout(() => { if (fullscreenDidukung() && !fullscreenAktif()) tampilkanOverlayFullscreenWajib(); }, 1200);
-      setTimeout(kunciOrientasiUtama, 700);
 
       setTimeout(simpanUkuranAwalLayar, 1300);
-    }
-
-
-    async 
-    // ============================================================
-    // PATCH KETAT: FULLSCREEN WAJIB + DETEKSI PINDAH TAB
-    // ============================================================
-    function fullscreenDidukung() {
-      const elem = document.documentElement;
-      return !!(elem.requestFullscreen || elem.webkitRequestFullscreen);
-    }
-
-    function fullscreenAktif() {
-      return !!(document.fullscreenElement || document.webkitFullscreenElement);
-    }
-
-    function tampilkanOverlayFullscreenWajib() {
-      if (!examAktif || statusTerkunci) return;
-      if (!fullscreenDidukung()) return;
-
-      const overlay = document.getElementById("fullscreen-required-overlay");
-      if (overlay) overlay.style.display = "flex";
-      fullscreenOverlayTerakhir = Date.now();
-    }
-
-    function sembunyikanOverlayFullscreenWajib() {
-      const overlay = document.getElementById("fullscreen-required-overlay");
-      if (overlay) overlay.style.display = "none";
-    }
-
-    async function mintaFullscreenLangsungDariKlik() {
-      aktifkanToleransiPerubahanLayar(4500);
-
-      try {
-        const elem = document.documentElement;
-
-        if (elem.requestFullscreen) {
-          await elem.requestFullscreen();
-        } else if (elem.webkitRequestFullscreen) {
-          elem.webkitRequestFullscreen();
-        }
-
-        fullscreenPernahAktif = true;
-        sembunyikanOverlayFullscreenWajib();
-        setTimeout(kunciOrientasiUtama, 250);
-        setTimeout(simpanUkuranAwalLayar, 1000);
-      } catch (e) {
-        // Jika browser menolak, overlay akan meminta siswa menekan tombol lagi.
-        setTimeout(() => {
-          if (examAktif && !fullscreenAktif()) tampilkanOverlayFullscreenWajib();
-        }, 800);
-      }
-    }
-
-    async function aktifkanFullscreenDariOverlay() {
-      await mintaFullscreenLangsungDariKlik();
-
-      setTimeout(() => {
-        if (fullscreenAktif()) {
-          fullscreenPernahAktif = true;
-          sembunyikanOverlayFullscreenWajib();
-          aktifkanToleransiPerubahanLayar(3000);
-        } else {
-          tampilkanOverlayFullscreenWajib();
-        }
-      }, 700);
-    }
-
-    function mulaiPantauFullscreenWajib() {
-      if (fullscreenWajibInterval) clearInterval(fullscreenWajibInterval);
-
-      fullscreenWajibInterval = setInterval(() => {
-        if (!examAktif || statusTerkunci) return;
-        if (!fullscreenDidukung()) return;
-        if (Date.now() < abaikanCekLayarSampai || orientationSedangToleransi) return;
-
-        if (fullscreenAktif()) {
-          fullscreenPernahAktif = true;
-          sembunyikanOverlayFullscreenWajib();
-          return;
-        }
-
-        tampilkanOverlayFullscreenWajib();
-
-        // Jika sebelumnya sudah pernah fullscreen lalu keluar, catat sebagai aktivitas mencurigakan.
-        // Dibatasi jeda agar tidak menghitung berkali-kali setiap detik.
-        if (fullscreenPernahAktif && Date.now() - terakhirPeringatanKeluarHalaman > 5000) {
-          terakhirPeringatanKeluarHalaman = Date.now();
-          beriPeringatanAtauKunci(
-            "keluar fullscreen",
-            "Halaman ujian keluar dari layar penuh. Tetap berada di mode ujian dan jangan membuka tab/aplikasi lain.",
-            "Peserta keluar dari fullscreen saat ujian berlangsung.",
-            2
-          );
-        }
-      }, 1200);
-    }
-
-    function catatKeluarHalaman(alasan) {
-      if (!examAktif || statusTerkunci || sistemSedangUnlock) return;
-      if (refreshDiizinkanKarenaJaringan()) return;
-
-      aktivitasKeluarHalamanTertunda = true;
-      halamanHiddenSejak = Date.now();
-
-      try {
-        tulisLog(alasan);
-      } catch (e) {}
-    }
-
-    function prosesKembaliKeHalaman() {
-      if (!examAktif || statusTerkunci) return;
-
-      if (aktivitasKeluarHalamanTertunda) {
-        aktivitasKeluarHalamanTertunda = false;
-
-        if (Date.now() - terakhirPeringatanKeluarHalaman > 2500) {
-          terakhirPeringatanKeluarHalaman = Date.now();
-
-          beriPeringatanAtauKunci(
-            "pindah tab/aplikasi",
-            "Sistem mendeteksi kamu keluar dari halaman ujian atau berpindah tab/aplikasi. Tetap di halaman ujian sampai selesai.",
-            "Peserta berpindah tab/aplikasi atau keluar dari halaman ujian.",
-            2
-          );
-        }
-      }
-
-      if (fullscreenDidukung() && !fullscreenAktif()) {
-        tampilkanOverlayFullscreenWajib();
-      }
-    }
-
-    function kunciOrientasiUtama() {
-      try {
-        if (screen.orientation && screen.orientation.lock) {
-          await screen.orientation.lock(ORIENTASI_UTAMA_UJIAN);
-        }
-      } catch (e) {
-        // Browser boleh menolak. Sistem tetap berjalan dan memberi arahan.
-      }
     }
 
     function masukFullscreen() {
@@ -1806,14 +1607,12 @@
         elem.requestFullscreen()
           .then(() => {
             aktifkanToleransiPerubahanLayar(2500);
-            kunciOrientasiUtama();
             setTimeout(simpanUkuranAwalLayar, 1200);
           })
           .catch(() => {});
       } else if (elem.webkitRequestFullscreen) {
         elem.webkitRequestFullscreen();
         aktifkanToleransiPerubahanLayar(2500);
-        kunciOrientasiUtama();
         setTimeout(simpanUkuranAwalLayar, 1200);
       }
     }
@@ -2363,37 +2162,6 @@
       }
     });
 
-
-    // PATCH KETAT: event tambahan untuk mendeteksi pindah tab/aplikasi.
-    document.addEventListener("visibilitychange", () => {
-      if (!examAktif || statusTerkunci) return;
-
-      if (document.hidden) {
-        catatKeluarHalaman("Halaman ujian menjadi hidden. Kemungkinan pindah tab/aplikasi.");
-        return;
-      }
-
-      prosesKembaliKeHalaman();
-    });
-
-    window.addEventListener("focus", () => {
-      prosesKembaliKeHalaman();
-    });
-
-    window.addEventListener("blur", () => {
-      if (!examAktif || statusTerkunci) return;
-
-      // Blur karena fokus masuk iframe Google Form masih diabaikan.
-      const iframe = document.getElementById("ujian-frame");
-      setTimeout(() => {
-        if (!examAktif || statusTerkunci) return;
-        if (document.activeElement === iframe) return;
-        if (document.hidden || !document.hasFocus()) {
-          catatKeluarHalaman("Browser kehilangan fokus. Kemungkinan membuka tab/aplikasi lain.");
-        }
-      }, 900);
-    });
-
     window.addEventListener("pagehide", () => {
       if (examAktif && !statusTerkunci && !sistemSedangUnlock) {
         if (refreshDiizinkanKarenaJaringan()) {
@@ -2428,18 +2196,17 @@
 
       if (Date.now() < abaikanCekLayarSampai || orientationSedangToleransi) return;
 
-      if (fullscreenDidukung() && !fullscreenAktif()) {
-        tampilkanOverlayFullscreenWajib();
+      clearTimeout(popupToleransiTimer);
 
-        if (fullscreenPernahAktif) {
-          beriPeringatanAtauKunci(
-            "keluar fullscreen",
-            "Halaman ujian keluar dari layar penuh. Aktifkan kembali mode ujian dan jangan membuka tab/aplikasi lain.",
-            "Peserta keluar dari fullscreen saat ujian berlangsung.",
-            2
-          );
+      popupToleransiTimer = setTimeout(() => {
+        if (!examAktif || statusTerkunci) return;
+
+        const fullscreenAktif = document.fullscreenElement || document.webkitFullscreenElement;
+
+        if (!fullscreenAktif) {
+          prosesPopupDenganToleransi("Keluar dari layar penuh atau popup sistem terdeteksi.");
         }
-      }
+      }, 2800);
     }
 
     
@@ -2505,10 +2272,10 @@
         if (!examAktif || statusTerkunci) return;
         if (Date.now() < abaikanCekLayarSampai) return;
 
-        // Default terbaik lapangan: Landscape.
-        // Portrait tidak langsung curang, tetapi diberi arahan/toleransi.
-        if (!layarLandscape()) {
-          prosesPerubahanOrientasiAman("Layar berubah ke mode portrait.");
+        // Resize kecil sering terjadi karena keyboard/popup Google Form.
+        // Baru diproses sebagai orientasi jika benar-benar landscape.
+        if (layarLandscape()) {
+          prosesPerubahanOrientasiAman("Layar berubah ke mode landscape.");
         }
       });
     }
@@ -2527,17 +2294,16 @@
       orientationSedangToleransi = true;
       jumlahGangguanOrientasi++;
 
-      aktifkanToleransiPerubahanLayar(7000);
+      aktifkanToleransiPerubahanLayar(6000);
 
       const warning = document.getElementById("orientation-warning");
       if (warning) {
         warning.classList.add("force-show");
         warning.style.display = "block";
-        warning.innerText = "Putar HP ke posisi LANDSCAPE/MENDATAR. Jangan gunakan split screen saat ujian.";
       }
 
       tampilIndikator("Orientasi layar berubah");
-      tampilPeringatanZonaKanan("Putar HP ke posisi LANDSCAPE/MENDATAR. Jika tetap portrait/split screen, sistem akan memberi peringatan.");
+      tampilPeringatanZonaKanan("Kembalikan HP ke posisi POTRET. Perubahan orientasi tidak langsung dianggap curang, tetapi jika tetap landscape akan menjadi peringatan.");
 
       clearTimeout(orientationToleransiTimer);
 
@@ -2552,15 +2318,15 @@
 
         if (!examAktif || statusTerkunci) return;
 
-        if (!layarLandscape() || layarMengecilMencurigakan()) {
+        if (layarLandscape() || layarMengecilMencurigakan()) {
           beriPeringatanAtauKunci(
             "orientasi layar",
-            "Layar masih portrait/mengecil. Ujian harus dikerjakan dalam posisi landscape/mendatar dan tidak boleh split screen.",
-            `${alasan} Peserta tetap berada pada layar portrait atau tampilan mengecil setelah toleransi.`,
+            "Layar masih dalam posisi landscape/mengecil. Ujian harus dikerjakan dalam posisi potret dan tidak boleh split screen.",
+            `${alasan} Peserta tetap berada pada layar landscape atau tampilan mengecil setelah toleransi.`,
             2
           );
         }
-      }, 7000);
+      }, 6000);
     }
 
     function mulaiPantauPopupMengambang() {
@@ -2680,12 +2446,12 @@
       const rasioLebar = window.innerWidth / screenWidth;
       const rasioTinggi = window.innerHeight / screenHeight;
 
-      if (rasioLebar < 0.72) return true;
-      if (rasioTinggi < 0.46 && rasioLebar < 0.92) return true;
+      if (rasioLebar < 0.82) return true;
+      if (rasioTinggi < 0.58 && rasioLebar < 0.98) return true;
 
       if (window.visualViewport) {
         const vvLebar = window.visualViewport.width / screenWidth;
-        if (vvLebar < 0.72) return true;
+        if (vvLebar < 0.82) return true;
       }
 
       return false;
@@ -3006,40 +2772,131 @@
     // ============================================================
     
     // ============================================================
-    // VERSI TERBAIK: CEK BROWSER & KESIAPAN SISWA
+    // CEK/PILIHAN BROWSER SEBELUM UJIAN
     // ============================================================
-    function pilihBrowserUjian(browser) {
-      browserPilihanSiswa = browser;
+    function deteksiBrowserUjian() {
+      const ua = navigator.userAgent || "";
+      const uaLower = ua.toLowerCase();
 
-      ["chrome", "edge", "safari", "lain"].forEach(item => {
-        const el = document.getElementById(`browser-${item}`);
-        if (el) el.classList.toggle("aktif", item === browser);
-      });
+      const isIOS = /iphone|ipad|ipod/i.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+      const isEdge = /edg\//i.test(ua);
+      const isChrome = /chrome|crios/i.test(ua) && !isEdge && !/opr|opera|ucbrowser|samsungbrowser/i.test(ua);
+      const isSafari = /safari/i.test(ua) && !/chrome|crios|edg|opr|opera|ucbrowser/i.test(ua);
+      const isFirefox = /firefox|fxios/i.test(ua);
+      const isOpera = /opr|opera mini|opera/i.test(ua);
+      const isUC = /ucbrowser|ucweb/i.test(ua);
+      const isSamsung = /samsungbrowser/i.test(ua);
+      const isWebView = /wv\)|; wv|version\/4\.0/i.test(ua) || /instagram|fbav|fban|whatsapp|line\//i.test(ua);
 
-      const note = document.getElementById("browser-note");
+      let label = "Browser tidak dikenal";
+      let status = "warn";
+      let saran = "Gunakan Chrome atau Edge terbaru agar kamera, fullscreen, dan Google Form lebih stabil.";
 
-      if (note) {
-        if (browser === "chrome" || browser === "edge") {
-          note.innerHTML = "Browser disarankan. Silakan lanjut jika sudah menutup tab/aplikasi lain.";
-        } else if (browser === "safari") {
-          note.innerHTML = "Safari/iPhone bisa digunakan, tetapi jika Google Form/cookies bermasalah segera lapor pengawas.";
-        } else {
-          note.innerHTML = "Browser ini tidak disarankan. Lebih aman buka ulang link ujian di Chrome atau Edge.";
-        }
+      if (isEdge) {
+        label = "Microsoft Edge";
+        status = "good";
+        saran = "Browser disarankan. Silakan pilih Microsoft Edge lalu lanjutkan ujian.";
+      } else if (isChrome) {
+        label = "Google Chrome";
+        status = "good";
+        saran = "Browser disarankan. Silakan pilih Google Chrome lalu lanjutkan ujian.";
+      } else if (isIOS || isSafari) {
+        label = isIOS ? "iPhone/iPad Safari/WebKit" : "Safari";
+        status = "warn";
+        saran = "Bisa digunakan, tetapi Google Form di iframe dapat bermasalah pada cookies/login. Jika soal tidak muncul, lapor pengawas.";
+      } else if (isWebView) {
+        label = "Browser dalam aplikasi / WebView";
+        status = "bad";
+        saran = "Tidak disarankan. Buka ulang link ujian menggunakan Chrome atau Edge, bukan dari dalam aplikasi.";
+      } else if (isUC || isOpera) {
+        label = isUC ? "UC Browser" : "Opera/Opera Mini";
+        status = "bad";
+        saran = "Tidak disarankan karena kamera, fullscreen, dan Google Form sering tidak stabil.";
+      } else if (isSamsung) {
+        label = "Samsung Internet";
+        status = "warn";
+        saran = "Bisa saja berjalan, tetapi lebih disarankan memakai Chrome/Edge terbaru.";
+      } else if (isFirefox) {
+        label = "Firefox";
+        status = "warn";
+        saran = "Bisa saja berjalan, tetapi untuk ujian ini lebih disarankan Chrome/Edge.";
       }
 
-      evaluasiTombolMulai();
-      updateChecklist();
+      return { label, status, saran, ua };
     }
 
-    function ubahKesiapanSiswa() {
-      const check = document.getElementById("siap-ujian-check");
-      siswaSiapUjian = !!(check && check.checked);
-      evaluasiTombolMulai();
-      updateChecklist();
+    function tampilkanDeteksiBrowserAwal() {
+      const hasil = deteksiBrowserUjian();
+      const box = document.getElementById("browser-detected-box");
+      if (!box) return;
+
+      box.innerHTML = `<b>Browser terdeteksi:</b> ${escapeHTML(hasil.label)}<br>${escapeHTML(hasil.saran)}`;
     }
 
-    function evaluasiTombolMulai() {
+    function pilihBrowserUjian(pilihan) {
+      const statusBox = document.getElementById("browser-status-box");
+      const semuaBtn = document.querySelectorAll(".browser-option-btn");
+
+      semuaBtn.forEach(btn => {
+        btn.classList.remove("selected", "good", "warn", "bad");
+      });
+
+      const btnDipilih = document.querySelector(`.browser-option-btn[data-browser="${pilihan}"]`);
+
+      browserUjianDipilih = true;
+
+      let status = "warn";
+      let label = "Browser lain";
+      let pesan = "Browser ini belum menjadi rekomendasi utama. Jika ada kendala kamera, fullscreen, atau Google Form, gunakan Chrome/Edge terbaru.";
+
+      if (pilihan === "chrome") {
+        status = "good";
+        label = "Google Chrome";
+        pesan = "Aman. Google Chrome adalah browser yang disarankan untuk ujian ini.";
+      } else if (pilihan === "edge") {
+        status = "good";
+        label = "Microsoft Edge";
+        pesan = "Aman. Microsoft Edge adalah browser yang disarankan untuk ujian ini.";
+      } else if (pilihan === "safari") {
+        status = "warn";
+        label = "Safari / iPhone";
+        pesan = "Bisa digunakan, tetapi iPhone/Safari dapat bermasalah pada cookies/login Google Form. Jika soal tidak muncul, gunakan Refresh Soal atau lapor pengawas.";
+      } else if (pilihan === "classroom") {
+        status = "bad";
+        label = "Classroom/WhatsApp/Aplikasi";
+        pesan = "Tidak disarankan jika masih terbuka di dalam aplikasi. Buka link ini di Chrome/Edge terlebih dahulu, lalu pilih Chrome/Edge.";
+      } else if (pilihan === "default") {
+        status = "bad";
+        label = "Browser bawaan HP";
+        pesan = "Tidak disarankan. Browser bawaan HP lama sering bermasalah pada kamera, fullscreen, dan Google Form. Gunakan Chrome/Edge.";
+      } else if (pilihan === "other") {
+        status = "warn";
+        label = "Browser lain";
+        pesan = "Bisa dicoba, tetapi jika ada kendala gunakan Chrome/Edge terbaru.";
+      }
+
+      browserUjianStatus = status;
+      browserUjianLabel = label;
+
+      if (btnDipilih) {
+        btnDipilih.classList.add("selected", status);
+      }
+
+      if (statusBox) {
+        statusBox.className = status;
+        statusBox.innerHTML = `<b>Status Browser: ${escapeHTML(label)}</b><br>${escapeHTML(pesan)}`;
+      }
+
+      updateKesiapanTombolMulai();
+    }
+
+    function browserBolehMulaiUjian() {
+      if (!browserUjianDipilih) return false;
+      if (browserUjianStatus === "bad") return false;
+      return true;
+    }
+
+    function updateKesiapanTombolMulai() {
       const btn = document.getElementById("btn-mulai");
       if (!btn) return;
 
@@ -3049,20 +2906,28 @@
         return;
       }
 
-      if (!browserPilihanSiswa) {
+      if (!browserUjianDipilih) {
         btn.disabled = true;
         btn.innerText = "Pilih Browser Dulu";
+        ubahStatus("Pilih browser yang digunakan sebelum mulai ujian.");
         return;
       }
 
-      if (!siswaSiapUjian) {
+      if (browserUjianStatus === "bad") {
         btn.disabled = true;
-        btn.innerText = "Centang Kesiapan Dulu";
+        btn.innerText = "Gunakan Chrome/Edge";
+        ubahStatus("Browser yang dipilih tidak disarankan. Buka ulang link di Chrome atau Edge.");
         return;
       }
 
       btn.disabled = false;
-      btn.innerText = "Mulai Ujian Sekarang";
+      btn.innerText = browserUjianStatus === "warn"
+        ? "Mulai Ujian dengan Catatan"
+        : "Mulai Ujian Sekarang";
+
+      if (pesanSiapDatabaseTerakhir) {
+        ubahStatus(pesanSiapDatabaseTerakhir);
+      }
     }
 
     function cekDukunganBrowser() {
