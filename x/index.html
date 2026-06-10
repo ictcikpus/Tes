@@ -1327,6 +1327,88 @@ body.strict-focus-active #fullscreen-gate-overlay {
   }
 }
 
+  
+/* ============================================================
+   UPDATE EVALUASI LAPANGAN - KUNCI TAB/APLIKASI SAJA
+   Kamera, fullscreen, popup/floating window tidak menjadi alasan kunci.
+   Kunci hanya aktif saat siswa pindah tab, pindah aplikasi, atau membuka aplikasi lain.
+   ============================================================ */
+
+body.iframe-security-blocked #ujian-frame {
+  pointer-events: auto !important;
+}
+
+body.iframe-security-blocked #fullscreen-gate-overlay {
+  display: none !important;
+  pointer-events: none !important;
+}
+
+#fullscreen-gate-overlay {
+  display: none !important;
+  pointer-events: none !important;
+}
+
+#quick-refresh-form {
+  position: fixed;
+  left: 8px;
+  bottom: 34px;
+  z-index: 1200;
+  width: auto;
+  min-width: 96px;
+  padding: 8px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(0,255,170,.65);
+  background: rgba(6,16,31,.90);
+  color: #baffee;
+  font-size: clamp(10px, 2.8vw, 12px);
+  font-weight: 900;
+  text-transform: none;
+  box-shadow: 0 6px 18px rgba(0,0,0,.22);
+  touch-action: manipulation;
+}
+
+#quick-refresh-form:active {
+  transform: scale(.98);
+}
+
+#mode-evaluasi-note {
+  position: fixed;
+  left: 50%;
+  top: calc(var(--topbar-height) + 6px);
+  transform: translateX(-50%);
+  z-index: 1044;
+  display: none;
+  width: min(92vw, 560px);
+  padding: 7px 10px;
+  border-radius: 10px;
+  background: rgba(6, 16, 31, .88);
+  color: #baffee;
+  border: 1px solid rgba(0,255,170,.32);
+  font-size: clamp(9.5px, 2.7vw, 11.5px);
+  font-weight: 800;
+  line-height: 1.35;
+  text-align: center;
+  pointer-events: none;
+}
+
+body.exam-mode #mode-evaluasi-note {
+  display: block;
+}
+
+@media (max-width: 380px), (max-height: 680px) {
+  #quick-refresh-form {
+    bottom: 30px;
+    left: 6px;
+    padding: 7px 9px;
+    min-width: 88px;
+  }
+
+  #mode-evaluasi-note {
+    font-size: 9.5px;
+    padding: 6px 8px;
+  }
+}
+
   </style>
 </head>
 
@@ -1340,16 +1422,17 @@ body.strict-focus-active #fullscreen-gate-overlay {
        <div class="alert-box">
         <b>PERINGATAN UJIAN:</b><br>
         1. Gunakan 1 smartphone dan pastikan login email Google sebelum mulai.<br>
-        2. Isi semua petanyaan dengan benar, jujur dan tidak menyontek.<br>
-        3. Gunakan hanya bagian kiri layar untuk scroll dan menjawab soal.<br>
-        4. Soal hanya bisa dikerjakan saat layar penuh aktif. Jika keluar fullscreen, split screen, atau muncul jendela mengambang, Google Form akan dikunci sementara.<br>
-        5. Tombol Selesai akan muncul saat semua soal telah dikerjakan atau ujian berjalan 30 menit.<br>6. Untuk HP lama, gunakan Chrome/Edge terbaru, matikan hemat baterai, dan atur layar mati otomatis minimal 10–30 menit.
+        2. Isi semua pertanyaan dengan benar, jujur dan tidak menyontek.<br>
+        3. Kamera bersifat opsional, fullscreen tidak wajib, dan popup/perubahan layar tidak mengunci ujian.<br>
+        4. Sistem kunci hanya aktif jika siswa pindah tab, pindah aplikasi, membuka aplikasi lain, atau meninggalkan halaman ujian.<br>
+        5. Jika Google Form tidak tersambung/macet, tekan tombol <b>Refresh Form</b> di layar ujian.<br>
+        6. Kerjakan ujian dengan fokus sampai selesai.
       </div>
 
       <div class="info-box">
-		<b>PERHATIAN:</b><br>
-		Sistem ini memantau kamu dari kamera, layar, tab/aplikasi dan gerakan jari yang dilakukan. Aktivitas mencurigakan akan diberi peringatan bertingkat: 1x muncul peringatan, 2x muncul peringatan disertai bunyi singkat, dan 3x aktivitas mencurigakan akan mengunci ujian otomatis. Kerjakan dengan jujur, karena hanya pengawas yang dapat membuka kunci Ujian.
-		</div>
+        <b>PERHATIAN:</b><br>
+        Mode evaluasi lapangan aktif. Sistem tidak mengunci karena kamera, fullscreen, popup, floating window, atau perubahan layar. Namun jika siswa berpindah tab, membuka aplikasi lain, atau meninggalkan halaman ujian, sistem akan mengunci ujian otomatis.
+      </div>
 
 
       <div class="info-box" id="compat-box">
@@ -1426,6 +1509,10 @@ body.strict-focus-active #fullscreen-gate-overlay {
     <div id="iframe-grid-soft-guard" aria-hidden="true"></div>
     <div id="grid-soft-message">Jangan coba-coba curang. Menahan teks, salin, Search Google, atau Ask AI dicegah oleh sistem.</div>
 
+    
+    <div id="mode-evaluasi-note">Mode evaluasi: kamera, fullscreen, dan popup tidak mengunci. Kunci hanya jika siswa pindah tab/aplikasi.</div>
+    <button id="quick-refresh-form" type="button" onclick="refreshGoogleFormRingan()">Refresh Form</button>
+
     <div id="fullscreen-gate-overlay">
       <div class="fullscreen-gate-card">
         <div class="fullscreen-gate-icon">!</div>
@@ -1489,7 +1576,7 @@ body.strict-focus-active #fullscreen-gate-overlay {
     const SPREADSHEET_ID = "1QWP_Z2aQNhG0sX2_myJdj4VGqlcz9FR8T5zhwgNR4aw";
     const SHEET_GID = "0";
 
-    const TOKEN_PENGAWAS = "PSAS";
+    const TOKEN_PENGAWAS = "GENAP";
     const TOKEN_UJI_COBA = "JUJUR";
 
     const BATAS_PERINGATAN_ZONA_KANAN = 1;
@@ -4599,5 +4686,299 @@ const GRID_CELL_SMALL = 10;
 })();
 
 </script>
+
+<script>
+/* ============================================================
+   UPDATE EVALUASI LAPANGAN - ATURAN KUNCI DIPERSEDERHANA
+   KUNCI AKTIF HANYA UNTUK:
+   - pindah tab
+   - pindah aplikasi
+   - membuka aplikasi lain
+   TIDAK MENGUNCI UNTUK:
+   - kamera gagal/tidak aktif
+   - fullscreen gagal/keluar fullscreen
+   - popup/floating window/perubahan layar
+   ============================================================ */
+(function () {
+  "use strict";
+
+  const MODE_EVALUASI_KUNCI_TAB_SAJA = true;
+  let sedangMengunciTab = false;
+  let infoTimerEvaluasi = null;
+
+  const fungsiAsli = {
+    prosesPelanggaran: typeof window.prosesPelanggaran === "function" ? window.prosesPelanggaran : null,
+    kunciUjian: typeof window.kunciUjian === "function" ? window.kunciUjian : null,
+    beriPeringatanAtauKunci: typeof window.beriPeringatanAtauKunci === "function" ? window.beriPeringatanAtauKunci : null,
+    prosesPopupDenganToleransi: typeof window.prosesPopupDenganToleransi === "function" ? window.prosesPopupDenganToleransi : null,
+    masukFullscreen: typeof window.masukFullscreen === "function" ? window.masukFullscreen : null,
+    cekLayarTerbagi: typeof window.cekLayarTerbagi === "function" ? window.cekLayarTerbagi : null,
+    mulaiCekKamera: typeof window.mulaiCekKamera === "function" ? window.mulaiCekKamera : null,
+    reloadIframeSoalMacet: typeof window.reloadIframeSoalMacet === "function" ? window.reloadIframeSoalMacet : null
+  };
+
+  function ujianAktifEvaluasi() {
+    try {
+      return !!window.examAktif && !window.statusTerkunci;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function alasanTermasukTabAplikasi(alasan) {
+    const teks = String(alasan || "").toLowerCase();
+
+    const adaKataTabAplikasi =
+      teks.includes("pindah tab") ||
+      teks.includes("tab/browser") ||
+      teks.includes("membuka tab") ||
+      teks.includes("tab lain") ||
+      teks.includes("pindah aplikasi") ||
+      teks.includes("membuka aplikasi") ||
+      teks.includes("aplikasi lain") ||
+      teks.includes("buka aplikasi") ||
+      teks.includes("meninggalkan halaman ujian") ||
+      teks.includes("keluar dari halaman ujian") ||
+      teks.includes("halaman menjadi tersembunyi") ||
+      teks.includes("document hidden") ||
+      teks.includes("visibilitychange hidden");
+
+    const hanyaFullscreenAtauPopup =
+      teks.includes("fullscreen") ||
+      teks.includes("layar penuh") ||
+      teks.includes("popup") ||
+      teks.includes("floating") ||
+      teks.includes("perubahan layar") ||
+      teks.includes("split screen") ||
+      teks.includes("kamera") ||
+      teks.includes("copy") ||
+      teks.includes("salin") ||
+      teks.includes("zona") ||
+      teks.includes("geser");
+
+    return adaKataTabAplikasi && !hanyaFullscreenAtauPopup;
+  }
+
+  function tampilInfoEvaluasi(pesan) {
+    const el = document.getElementById("mode-evaluasi-note");
+    if (!el) return;
+
+    el.textContent = pesan;
+    el.style.display = "block";
+
+    clearTimeout(infoTimerEvaluasi);
+    infoTimerEvaluasi = setTimeout(() => {
+      if (document.body.classList.contains("exam-mode")) {
+        el.textContent = "Mode evaluasi: kamera, fullscreen, dan popup tidak mengunci. Kunci hanya jika siswa pindah tab/aplikasi.";
+      } else {
+        el.style.display = "none";
+      }
+    }, 3500);
+  }
+
+  function catatEvaluasi(pesan) {
+    try {
+      if (typeof window.tulisLog === "function") window.tulisLog(pesan);
+    } catch (e) {}
+    try {
+      console.log("[CyberLock Evaluasi]", pesan);
+    } catch (e) {}
+  }
+
+  function bersihkanBlokNonWajib() {
+    try {
+      document.body.classList.remove("iframe-security-blocked");
+      const gate = document.getElementById("fullscreen-gate-overlay");
+      if (gate) gate.style.display = "none";
+
+      const iframe = document.getElementById("ujian-frame");
+      if (iframe && !document.body.classList.contains("locked-mode")) {
+        iframe.style.pointerEvents = "auto";
+      }
+    } catch (e) {}
+  }
+
+  function abaikanNonWajib(alasan) {
+    bersihkanBlokNonWajib();
+    tampilInfoEvaluasi("Aktivitas tidak wajib terdeteksi, tetapi tidak dikunci: " + String(alasan || "kamera/fullscreen/popup"));
+    catatEvaluasi("Diabaikan sesuai mode evaluasi: " + String(alasan || "-"));
+  }
+
+  function kunciKarenaTabAplikasi(alasan) {
+    if (!ujianAktifEvaluasi() || sedangMengunciTab) return;
+    sedangMengunciTab = true;
+
+    const pesan = alasan || "Peserta pindah tab/aplikasi atau membuka aplikasi lain saat ujian.";
+    catatEvaluasi("KUNCI TAB/APLIKASI: " + pesan);
+
+    try {
+      if (fungsiAsli.prosesPelanggaran) {
+        fungsiAsli.prosesPelanggaran(pesan);
+      } else if (fungsiAsli.kunciUjian) {
+        fungsiAsli.kunciUjian(pesan);
+      }
+    } catch (e) {
+      try {
+        if (fungsiAsli.kunciUjian) fungsiAsli.kunciUjian(pesan);
+      } catch (err) {}
+    }
+
+    setTimeout(() => {
+      sedangMengunciTab = false;
+    }, 3000);
+  }
+
+  // Kamera tidak wajib. Pemeriksaan kamera hanya mengubah label, tidak memanggil kunci.
+  window.mulaiCekKamera = function () {
+    try {
+      if (window.cameraCheckInterval) {
+        clearInterval(window.cameraCheckInterval);
+        window.cameraCheckInterval = null;
+      }
+    } catch (e) {}
+
+    try {
+      const label = document.getElementById("camera-label");
+      if (label) label.innerText = "Kamera Opsional";
+      document.body.classList.add("camera-lite");
+      if (typeof window.aktifkanModeTanpaKamera === "function") {
+        window.aktifkanModeTanpaKamera("Kamera dibuat opsional pada mode evaluasi. Tidak menjadi alasan kunci.");
+      }
+    } catch (e) {}
+  };
+
+  // Fullscreen tidak wajib. Fungsi fullscreen dibuat ringan dan tidak memicu kunci.
+  window.masukFullscreen = function () {
+    try {
+      if (typeof window.aktifkanToleransiPerubahanLayar === "function") {
+        window.aktifkanToleransiPerubahanLayar(15000);
+      }
+    } catch (e) {}
+
+    bersihkanBlokNonWajib();
+    catatEvaluasi("Request fullscreen dilewati. Fullscreen tidak wajib pada mode evaluasi.");
+  };
+
+  window.cekFullscreen = function () {
+    bersihkanBlokNonWajib();
+    return false;
+  };
+
+  window.cekLayarTerbagi = function () {
+    // Split/perubahan layar/popup tidak mengunci pada mode evaluasi.
+    bersihkanBlokNonWajib();
+    return false;
+  };
+
+  window.layarMengecilMencurigakan = function () {
+    return false;
+  };
+
+  window.prosesPopupDenganToleransi = function (alasan) {
+    if (alasanTermasukTabAplikasi(alasan)) {
+      kunciKarenaTabAplikasi(alasan);
+      return;
+    }
+
+    abaikanNonWajib(alasan || "popup/perubahan layar");
+  };
+
+  window.beriPeringatanAtauKunci = function (kategori, pesanPeringatan, alasanKunci) {
+    const gabungan = `${kategori || ""} ${pesanPeringatan || ""} ${alasanKunci || ""}`;
+
+    if (alasanTermasukTabAplikasi(gabungan)) {
+      kunciKarenaTabAplikasi(alasanKunci || pesanPeringatan || kategori);
+      return;
+    }
+
+    abaikanNonWajib(kategori || alasanKunci || "aktivitas non wajib");
+  };
+
+  window.prosesPelanggaran = function (alasan) {
+    if (alasanTermasukTabAplikasi(alasan)) {
+      kunciKarenaTabAplikasi(alasan);
+      return;
+    }
+
+    abaikanNonWajib(alasan || "pelanggaran non tab/aplikasi");
+  };
+
+  // Tombol refresh Google Form yang lebih mudah diakses.
+  window.refreshGoogleFormRingan = function () {
+    if (!window.examAktif || window.statusTerkunci) return;
+
+    const yakin = confirm(
+      "Refresh Google Form digunakan jika soal tidak tersambung/macet. " +
+      "Jawaban yang belum tersimpan di Google Form bisa hilang. Lanjut refresh?"
+    );
+
+    if (!yakin) return;
+
+    try {
+      const iframe = document.getElementById("ujian-frame");
+      if (!iframe) return;
+
+      window.iframeReloadManual = true;
+      if (typeof window.mulaiPantauIframeMacet === "function") {
+        window.mulaiPantauIframeMacet();
+      }
+
+      const srcSekarang = iframe.src || window.linkGoogleForm || "";
+      iframe.src = "about:blank";
+
+      setTimeout(() => {
+        const pemisah = srcSekarang.includes("?") ? "&" : "?";
+        iframe.src = srcSekarang + pemisah + "reload=" + Date.now();
+      }, 350);
+
+      tampilInfoEvaluasi("Google Form sedang direfresh. Tunggu beberapa detik.");
+      catatEvaluasi("Guru/siswa menekan tombol Refresh Form.");
+    } catch (e) {
+      alert("Refresh Form gagal. Silakan tutup dan buka ulang link ujian dari guru.");
+    }
+  };
+
+  // Pindah tab / aplikasi / layar menjadi tersembunyi: langsung kunci.
+  document.addEventListener("visibilitychange", function () {
+    if (!ujianAktifEvaluasi()) return;
+
+    if (document.hidden) {
+      kunciKarenaTabAplikasi("Peserta pindah tab, pindah aplikasi, membuka aplikasi lain, atau halaman ujian menjadi tersembunyi.");
+      return;
+    }
+
+    bersihkanBlokNonWajib();
+  }, true);
+
+  // Pagehide/beforeunload tetap dicatat sebagai keluar halaman.
+  window.addEventListener("pagehide", function () {
+    if (!ujianAktifEvaluasi()) return;
+    try {
+      localStorage.setItem(window.KEY_BREACH || "cyberlock_breach", "true");
+    } catch (e) {}
+  }, true);
+
+  window.addEventListener("blur", function () {
+    setTimeout(() => {
+      if (!ujianAktifEvaluasi()) return;
+      if (document.hidden) {
+        kunciKarenaTabAplikasi("Peserta pindah layar/tab/aplikasi dari halaman ujian.");
+      }
+    }, 250);
+  }, true);
+
+  // Bersihkan overlay fullscreen/popup secara berkala agar Google Form tetap bisa disentuh.
+  setInterval(function () {
+    if (!window.statusTerkunci) bersihkanBlokNonWajib();
+  }, 900);
+
+  window.addEventListener("load", function () {
+    bersihkanBlokNonWajib();
+    setTimeout(bersihkanBlokNonWajib, 1000);
+    setTimeout(bersihkanBlokNonWajib, 2500);
+  });
+})();
+</script>
+
 </body>
 </html>
