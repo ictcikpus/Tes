@@ -1558,6 +1558,7 @@ body.exam-mode #mode-evaluasi-note {
       <h2>🚨 UJIAN DIKUNCI 🚨</h2>
       <p id="lock-reason">Sistem mendeteksi aktivitas mencurigakan.</p>
       <p style="color:#ffb3b3;font-weight:bold;">Panggil pengawas. Kunci hanya bisa dibuka dengan kode guru.</p>
+      <p id="danger-alarm-status" style="color:#ffd166;font-weight:900;margin:8px 0 10px;">🔊 Alarm danger aktif sampai kode guru benar.</p>
       <input type="password" id="token-input" class="input-secure" placeholder="KODE GURU" autocomplete="off" inputmode="text" />
       <button class="btn-danger" onclick="bukaKunciUjian()">BUKA KUNCI UJIAN</button>
     </div>
@@ -1590,6 +1591,14 @@ body.exam-mode #mode-evaluasi-note {
     // "optional" = kamera dicoba, jika gagal ujian tetap berjalan dengan catatan pengawas.
     // "off"      = kamera dimatikan penuh, cocok untuk iPhone/HP lama yang bermasalah.
     const CAMERA_MODE = "optional";
+
+    // ALARM DANGER SAAT CYBERLOCK MENGUNCI UJIAN.
+    // Volume aplikasi dibuat maksimum (1.0), tetapi website tidak dapat memaksa
+    // volume sistem HP, menonaktifkan tombol volume, atau membatalkan mode senyap.
+    const ALARM_DANGER_AKTIF = true;
+    const ALARM_DANGER_VOLUME = 1.0;
+    const ALARM_DANGER_RETRY_MS = 900;
+
     const BATAS_PERINGATAN_BERTINGKAT = 2; // 1x peringatan, 2x peringatan + bunyi, 3x terkunci untuk jenis yang sama
     const BATAS_TOTAL_AKTIVITAS_MENCURIGAKAN = 3; // total aktivitas mencurigakan apa pun, 3x terkunci // 1x peringatan, 2x peringatan + bunyi, 3x terkunci
 
@@ -1666,6 +1675,14 @@ body.exam-mode #mode-evaluasi-note {
     let jumlahGagalKamera = 0;
     let iframeLoadTimer = null;
     let iframeReloadManual = false;
+
+    // Status alarm danger terkunci.
+    let dangerAlarmAudio = null;
+    let dangerAlarmObjectURL = "";
+    let dangerAlarmRetryInterval = null;
+    let dangerAlarmSedangAktif = false;
+    let dangerAlarmSudahDipancing = false;
+    let dangerFallbackNodes = [];
 
     // ============================================================
     // LOAD AWAL
@@ -1866,6 +1883,9 @@ body.exam-mode #mode-evaluasi-note {
     // MULAI UJIAN
     // ============================================================
     async function inisialisasiAplikasi() {
+      // Dipanggil langsung dari klik siswa agar browser mengizinkan audio saat nanti terkunci.
+      aktifkanAlarmDangerDariInteraksi();
+
       peserta = document.getElementById("peserta-input").value.trim();
 
       if (!peserta) {
@@ -2217,6 +2237,7 @@ body.exam-mode #mode-evaluasi-note {
       const durasiFinal = formatDurasi(Date.now() - examStartedAt);
 
       lepaskanWakeLockRingan();
+      hentikanAlarmDangerTerkunci();
       sistemSedangUnlock = true;
       examAktif = false;
       statusTerkunci = false;
@@ -2797,6 +2818,274 @@ body.exam-mode #mode-evaluasi-note {
       } catch (error) {}
     }
 
+
+    // ============================================================
+    // ALARM DANGER BERULANG SAAT UJIAN DIKUNCI
+    // ============================================================
+    function tulisStringWav(view, offset, nilai) {
+      for (let i = 0; i < nilai.length; i++) {
+        view.setUint8(offset + i, nilai.charCodeAt(i));
+      }
+    }
+
+    function buatBlobAlarmDanger() {
+      const sampleRate = 22050;
+      const durasiDetik = 1.60;
+      const jumlahSample = Math.floor(sampleRate * durasiDetik);
+      const buffer = new ArrayBuffer(44 + jumlahSample * 2);
+      const view = new DataView(buffer);
+
+      tulisStringWav(view, 0, "RIFF");
+      view.setUint32(4, 36 + jumlahSample * 2, true);
+      tulisStringWav(view, 8, "WAVE");
+      tulisStringWav(view, 12, "fmt ");
+      view.setUint32(16, 16, true);
+      view.setUint16(20, 1, true);
+      view.setUint16(22, 1, true);
+      view.setUint32(24, sampleRate, true);
+      view.setUint32(28, sampleRate * 2, true);
+      view.setUint16(32, 2, true);
+      view.setUint16(34, 16, true);
+      tulisStringWav(view, 36, "data");
+      view.setUint32(40, jumlahSample * 2, true);
+
+      let fase = 0;
+      for (let i = 0; i < jumlahSample; i++) {
+        const t = i / sampleRate;
+        const bagian = t % 0.80;
+        const naik = bagian < 0.40;
+        const progress = (bagian % 0.40) / 0.40;
+        const freq = naik
+          ? 620 + (980 - 620) * progress
+          : 980 - (980 - 620) * progress;
+
+        fase += (2 * Math.PI * freq) / sampleRate;
+
+        // Envelope halus agar loop tidak berbunyi klik.
+        const fadeMasuk = Math.min(1, t / 0.025);
+        const fadeKeluar = Math.min(1, (durasiDetik - t) / 0.035);
+        const denyut = 0.84 + 0.16 * Math.sin(2 * Math.PI * 5 * t);
+        const sample = (
+          0.62 * Math.sin(fase) +
+          0.20 * Math.sin(fase * 2) +
+          0.08 * Math.sin(fase * 0.5)
+        ) * fadeMasuk * fadeKeluar * denyut;
+
+        const nilai = Math.max(-1, Math.min(1, sample));
+        view.setInt16(44 + i * 2, nilai * 32767, true);
+      }
+
+      return new Blob([buffer], { type: "audio/wav" });
+    }
+
+    function siapkanElemenAlarmDanger() {
+      if (!ALARM_DANGER_AKTIF) return null;
+      if (dangerAlarmAudio) return dangerAlarmAudio;
+
+      try {
+        const audio = document.createElement("audio");
+        const blob = buatBlobAlarmDanger();
+        dangerAlarmObjectURL = URL.createObjectURL(blob);
+
+        audio.id = "cyberlock-danger-alarm";
+        audio.src = dangerAlarmObjectURL;
+        audio.preload = "auto";
+        audio.loop = true;
+        audio.playsInline = true;
+        audio.setAttribute("playsinline", "");
+        audio.setAttribute("webkit-playsinline", "");
+        audio.volume = ALARM_DANGER_VOLUME;
+        audio.style.display = "none";
+        document.body.appendChild(audio);
+
+        dangerAlarmAudio = audio;
+        return audio;
+      } catch (error) {
+        tulisLog("Elemen alarm danger gagal dibuat: " + (error && error.message ? error.message : error));
+        return null;
+      }
+    }
+
+    function aktifkanAlarmDangerDariInteraksi() {
+      aktifkanAudioPeringatan();
+
+      const audio = siapkanElemenAlarmDanger();
+      if (!audio || dangerAlarmSudahDipancing) return;
+
+      dangerAlarmSudahDipancing = true;
+      const volumeSebelumnya = audio.volume;
+      audio.volume = 0.001;
+
+      const hasilPlay = audio.play();
+      if (hasilPlay && typeof hasilPlay.then === "function") {
+        hasilPlay
+          .then(() => {
+            setTimeout(() => {
+              if (!dangerAlarmSedangAktif) {
+                audio.pause();
+                try { audio.currentTime = 0; } catch (e) {}
+              }
+              audio.volume = volumeSebelumnya;
+            }, 80);
+          })
+          .catch(() => {
+            audio.volume = volumeSebelumnya;
+          });
+      } else {
+        setTimeout(() => {
+          if (!dangerAlarmSedangAktif) {
+            audio.pause();
+            try { audio.currentTime = 0; } catch (e) {}
+          }
+          audio.volume = volumeSebelumnya;
+        }, 80);
+      }
+    }
+
+    function bersihkanNodeDangerFallback() {
+      dangerFallbackNodes.forEach(node => {
+        try { node.stop(0); } catch (e) {}
+        try { node.disconnect(); } catch (e) {}
+      });
+      dangerFallbackNodes = [];
+    }
+
+    function bunyiDangerFallback() {
+      if (!dangerAlarmSedangAktif || !ALARM_DANGER_AKTIF) return;
+
+      try {
+        aktifkanAudioPeringatan();
+        if (!audioContextPeringatan) return;
+
+        if (audioContextPeringatan.state === "suspended") {
+          audioContextPeringatan.resume().catch(() => {});
+        }
+
+        const ctx = audioContextPeringatan;
+        const sekarang = ctx.currentTime;
+        const gain = ctx.createGain();
+        const osc1 = ctx.createOscillator();
+        const osc2 = ctx.createOscillator();
+
+        gain.gain.setValueAtTime(0.0001, sekarang);
+        gain.gain.exponentialRampToValueAtTime(0.34, sekarang + 0.035);
+        gain.gain.setValueAtTime(0.34, sekarang + 0.78);
+        gain.gain.exponentialRampToValueAtTime(0.0001, sekarang + 0.92);
+
+        osc1.type = "sawtooth";
+        osc1.frequency.setValueAtTime(620, sekarang);
+        osc1.frequency.linearRampToValueAtTime(980, sekarang + 0.42);
+        osc1.frequency.linearRampToValueAtTime(640, sekarang + 0.88);
+
+        osc2.type = "square";
+        osc2.frequency.setValueAtTime(310, sekarang);
+        osc2.frequency.linearRampToValueAtTime(490, sekarang + 0.42);
+        osc2.frequency.linearRampToValueAtTime(320, sekarang + 0.88);
+
+        osc1.connect(gain);
+        osc2.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc1.start(sekarang);
+        osc2.start(sekarang);
+        osc1.stop(sekarang + 0.94);
+        osc2.stop(sekarang + 0.94);
+
+        dangerFallbackNodes.push(osc1, osc2, gain);
+        setTimeout(() => {
+          dangerFallbackNodes = dangerFallbackNodes.filter(n => n !== osc1 && n !== osc2 && n !== gain);
+          try { osc1.disconnect(); } catch (e) {}
+          try { osc2.disconnect(); } catch (e) {}
+          try { gain.disconnect(); } catch (e) {}
+        }, 1100);
+      } catch (error) {}
+    }
+
+    function cobaPutarAlarmDanger() {
+      if (!dangerAlarmSedangAktif || !ALARM_DANGER_AKTIF) return;
+
+      const audio = siapkanElemenAlarmDanger();
+      if (!audio) {
+        bunyiDangerFallback();
+        return;
+      }
+
+      audio.volume = ALARM_DANGER_VOLUME;
+      const hasilPlay = audio.play();
+
+      if (hasilPlay && typeof hasilPlay.catch === "function") {
+        hasilPlay.catch(() => {
+          bunyiDangerFallback();
+          const status = document.getElementById("danger-alarm-status");
+          if (status) status.innerText = "🔊 Sentuh layar agar alarm danger aktif. Kode guru tetap diperlukan.";
+        });
+      }
+    }
+
+    function mulaiAlarmDangerTerkunci() {
+      if (!ALARM_DANGER_AKTIF) return;
+
+      dangerAlarmSedangAktif = true;
+      aktifkanAudioPeringatan();
+      cobaPutarAlarmDanger();
+
+      if (dangerAlarmRetryInterval) clearInterval(dangerAlarmRetryInterval);
+      dangerAlarmRetryInterval = setInterval(() => {
+        if (!dangerAlarmSedangAktif || !statusTerkunci) {
+          hentikanAlarmDangerTerkunci();
+          return;
+        }
+
+        if (dangerAlarmAudio && !dangerAlarmAudio.paused) return;
+        cobaPutarAlarmDanger();
+      }, ALARM_DANGER_RETRY_MS);
+
+      const status = document.getElementById("danger-alarm-status");
+      if (status) status.innerText = "🔊 Alarm danger aktif sampai kode guru benar.";
+      tulisLog("Alarm danger mulai karena ujian dikunci.");
+    }
+
+    function hentikanAlarmDangerTerkunci() {
+      dangerAlarmSedangAktif = false;
+
+      if (dangerAlarmRetryInterval) {
+        clearInterval(dangerAlarmRetryInterval);
+        dangerAlarmRetryInterval = null;
+      }
+
+      if (dangerAlarmAudio) {
+        try { dangerAlarmAudio.pause(); } catch (e) {}
+        try { dangerAlarmAudio.currentTime = 0; } catch (e) {}
+      }
+
+      bersihkanNodeDangerFallback();
+      tulisLog("Alarm danger dihentikan.");
+    }
+
+    // Jika sesi lama sudah terkunci sebelum ada gesture pengguna, sentuhan pertama
+    // pada overlay akan mengaktifkan audio sesuai kebijakan browser mobile.
+    document.addEventListener("pointerdown", function () {
+      if (statusTerkunci && dangerAlarmSedangAktif) {
+        aktifkanAlarmDangerDariInteraksi();
+        cobaPutarAlarmDanger();
+      }
+    }, true);
+
+    document.addEventListener("keydown", function () {
+      if (statusTerkunci && dangerAlarmSedangAktif) {
+        aktifkanAlarmDangerDariInteraksi();
+        cobaPutarAlarmDanger();
+      }
+    }, true);
+
+    window.addEventListener("focus", function () {
+      if (statusTerkunci && dangerAlarmSedangAktif) cobaPutarAlarmDanger();
+    }, true);
+
+    window.addEventListener("pageshow", function () {
+      if (statusTerkunci && dangerAlarmSedangAktif) cobaPutarAlarmDanger();
+    }, true);
+
     function tampilkanPopupPeringatan(kategori, pesan, jumlah, batas, pakaiSuara = false) {
       const popup = document.getElementById("warning-popup");
       const pesanEl = document.getElementById("warning-popup-message");
@@ -3227,6 +3516,9 @@ body.exam-mode #mode-evaluasi-note {
 
       document.getElementById("camera-label").innerText = "Terkunci";
       document.body.classList.add("camera-lite");
+
+      // Alarm terus berulang selama CyberLock masih terkunci.
+      mulaiAlarmDangerTerkunci();
       mulaiPaksaFullscreenTerkunci();
 
       setTimeout(() => {
@@ -3259,6 +3551,10 @@ body.exam-mode #mode-evaluasi-note {
 
     function bukaKunciDenganTokenValid() {
       sistemSedangUnlock = true;
+
+      // Alarm hanya berhenti setelah kode pengawas/uji coba dinyatakan valid.
+      hentikanAlarmDangerTerkunci();
+
       statusTerkunci = false;
       localStorage.removeItem(KEY_BREACH);
 
@@ -3274,15 +3570,30 @@ body.exam-mode #mode-evaluasi-note {
 
       simpanSesiAktif();
       masukFullscreen();
-
       setTimeout(simpanUkuranAwalLayar, 1000);
 
-      mintaIzinKamera()
-        .then(() => { sistemSedangUnlock = false; })
-        .catch(() => {
-          sistemSedangUnlock = false;
-          kunciUjian("Kamera belum aktif setelah pengawas membuka kunci.");
-        });
+      if (CAMERA_MODE === "required") {
+        mintaIzinKamera()
+          .then(() => { sistemSedangUnlock = false; })
+          .catch(() => {
+            sistemSedangUnlock = false;
+            kunciUjian("Kamera wajib belum aktif setelah pengawas membuka kunci.");
+          });
+        return;
+      }
+
+      if (CAMERA_MODE === "optional") {
+        mintaIzinKamera()
+          .then(() => { sistemSedangUnlock = false; })
+          .catch(() => {
+            sistemSedangUnlock = false;
+            aktifkanModeTanpaKamera("Kamera tetap opsional setelah pengawas membuka kunci.");
+          });
+        return;
+      }
+
+      aktifkanModeTanpaKamera("Kamera dinonaktifkan setelah pengawas membuka kunci.");
+      sistemSedangUnlock = false;
     }
 
     function paksaFullscreenSaatTerkunci() {
@@ -4972,6 +5283,15 @@ const GRID_CELL_SMALL = 10;
     setTimeout(bersihkanBlokNonWajib, 2500);
   });
 })();
+</script>
+<script>
+  // Bersihkan resource audio saat halaman benar-benar ditutup.
+  window.addEventListener("unload", function () {
+    try {
+      if (typeof hentikanAlarmDangerTerkunci === "function") hentikanAlarmDangerTerkunci();
+      if (dangerAlarmObjectURL) URL.revokeObjectURL(dangerAlarmObjectURL);
+    } catch (e) {}
+  });
 </script>
 
 </body>
