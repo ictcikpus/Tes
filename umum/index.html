@@ -4675,7 +4675,7 @@ const GRID_CELL_SMALL = 10;
     if (!ujianAktifStrict() || locking) return;
     locking = true;
 
-    msgStrict("Pelanggaran terdeteksi. Ujian dikunci.", "danger", 5000);
+    msgStrict("Pelanggaran terdeteksi. Lanjutkan Ujian lebih hatihati !", "danger", 5000);
 
     try {
       tulisLog("STRICT LOCK: " + kategori + " - " + alasan);
